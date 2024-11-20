@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kampus Konnect Welcome</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f0f2f5;
+      }
+
+      .navbar {
+        background-color: #4285f4;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .nav-button {
+        background-color: white;
+        color: #4285f4;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .nav-button:hover {
+        background-color: #f8f9fa;
+      }
+
+      .main-content {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .welcome-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .welcome-card h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #333;
+      }
+
+      .welcome-card p {
+        color: #666;
+        line-height: 1.5;
+      }
+
+      .tiles-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+      }
+
+      .tile {
+        background-color: white;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        text-decoration: none;
+        color: #4285f4;
+        transition: transform 0.2s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .tile:hover {
+        transform: translateY(-5px);
+      }
+
+      .footer {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 1rem;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+
+      @media (max-width: 600px) {
+        .tiles-container {
+          grid-template-columns: 1fr;
+        }
+
+        .welcome-card {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">Kampus Konnect</div>
+      <div class="nav-buttons">
+        <a href="#" class="nav-button">FAQ's</a>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="welcome-card">
+        <h1>Welcome to Kampus Konnect!</h1>
+        <p>
+          Kampus Konnect is your go-to platform for all campus-related queries
+          and support. Whether you have questions about academics,
+          administration, or campus services, we’re here to help! Easily submit
+          your queries, track their progress, and get timely responses—all in
+          one convenient place. Our goal is to enhance your campus experience by
+          ensuring you have the support and information you need, when you need
+          it. Join us in making student life smoother, more connected, and
+          stress-free!
+        </p>
+      </div>
+
+      <div class="tiles-container">
+        <a href="Admin Pages/AdminLogin-Signup.html" class="tile">
+          <h2>Admin</h2>
+        </a>
+        <a href="StudentLogin-Signup.html" class="tile">
+          <h2>Students</h2>
+        </a>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>© 2024 KampusKonnect. All rights reserved.</p>
+    </footer>
+  </body>
+</html>
