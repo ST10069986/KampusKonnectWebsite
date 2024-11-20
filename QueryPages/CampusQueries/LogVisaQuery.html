@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log a Campus Query</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+      form,
+      #studentNumberForm {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #0056b3;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      button:hover {
+        background-color: #003d82;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      .progress-container {
+        margin-top: 10px;
+        display: none;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+      }
+      .progress {
+        height: 100%;
+        background-color: #0056b3;
+        border-radius: 4px;
+        width: 0%;
+        transition: width 0.2s ease;
+      }
+      .error {
+        color: red;
+        margin-top: 5px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Log a Visa Query</h1>
+
+    <div id="studentNumberForm">
+      <label for="inputStudentId">Enter Your Student Number:</label>
+      <input type="text" id="inputStudentId" required />
+      <button id="loadStudentData">Load Student Data</button>
+    </div>
+
+    <form id="queryForm" style="display: none">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" readonly />
+
+      <label for="studentNumber">Student Number:</label>
+      <input type="text" id="studentId" name="studentId" readonly />
+
+      <label for="campus">Campus:</label>
+      <input type="text" id="campus" name="campus" readonly />
+
+      <label for="qualification">Qualification:</label>
+      <input type="text" id="qualification" name="qualification" readonly />
+
+      <label for="deliveryMode">Delivery Mode:</label>
+      <input type="text" id="deliveryMode" name="deliveryMode" readonly />
+
+      <label for="studyType">Study Type:</label>
+      <input type="text" id="studyType" name="studyType" readonly />
+
+      <label for="queryType">Query Type:</label>
+      <select id="queryType" name="queryType" required>
+        <option value="">Select Query Type</option>
+        <option value="Study Visa Letter Request">
+          Study Visa Letter Request
+        </option>
+        <option value="Student Visa Extension Letter">
+          Student Visa Extension Letter
+        </option>
+        <option value="Letter of Good Standing">Letter of Good Standing</option>
+        <option value="Letter of Conduct">Letter of Conduct</option>
+        <option value="Visa Status Confirmation Letter">
+          Visa Status Confirmation Letter
+        </option>
+        <option value="Bank Letter for Visa">Bank Letter for Visa</option>
+        <option value="General Visa Enquiry">General Visa Enquiry</option>
+      </select>
+
+      <label for="documentType">Document Type:</label>
+      <select id="documentType" name="documentType">
+        <option value="">Select Document Type</option>
+        <option value="New Study Visa Application">
+          New Study Visa Application
+        </option>
+        <option value="Visa Extension">Visa Extension</option>
+        <option value="Change of Status">Change of Status</option>
+        <option value="Visa Transfer">Visa Transfer</option>
+        <option value="Work Visa Endorsement">Work Visa Endorsement</option>
+        <option value="Critical Skills Visa">Critical Skills Visa</option>
+      </select>
+
+      <label for="visaStatus">Visa Status:</label>
+      <select id="visaStatus" name="visaStatus">
+        <option value="">Select Visa Status</option>
+        <option value="Current Visa Valid">Current Visa Valid</option>
+        <option value="Visa Expiring Soon">Visa Expiring Soon</option>
+        <option value="Visa Expired">Visa Expired</option>
+        <option value="Awaiting New Visa">Awaiting New Visa</option>
+        <option value="First Time Application">First Time Application</option>
+      </select>
+
+      <label for="purpose">Purpose:</label>
+      <select id="purpose" name="purpose">
+        <option value="">Select a Purpose Type</option>
+        <option value="Embassy/Consulate Submission">
+          Embassy/Consulate Submission
+        </option>
+        <option value="Home Affairs Submission">Home Affairs Submission</option>
+        <option value="Bank Requirement">Bank Requirement</option>
+        <option value="Immigration Verification">
+          Immigration Verification
+        </option>
+        <option value="Employment Purpose">Employment Purpose</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="urgencyLevel">Urgency Level:</label>
+      <select id="urgencyLevel" name="urgencyLevel">
+        <option value="">Select the Urgency Level</option>
+        <option value="Urgent - Required within 24 Hours">
+          Urgent - Required within 24 Hours
+        </option>
+        <option value="High Priority - Required within 3 days">
+          High Priority - Required within 3 days
+        </option>
+        <option value="Standard - Required within 5 days">
+          Standard - Required within 5 days
+        </option>
+        <option value="Non-urgent - Required within 7 days">
+          Non-urgent - Required within 7 days
+        </option>
+      </select>
+
+      <label for="passportNumber">Passport Number:</label>
+      <textarea
+        id="passportNumber"
+        name="passportNumber"
+        rows="1"
+        required
+      ></textarea>
+
+      <label for="visaExpiryDate">Visa Expiry Date:</label>
+      <textarea
+        id="visaExpiryDate"
+        name="visaExpiryDate"
+        rows="1"
+        required
+      ></textarea>
+
+      <label for="additionalInfo">Additional Info:</label>
+      <textarea
+        id="additionalInfo"
+        name="additionalInfo"
+        rows="1"
+        required
+      ></textarea>
+
+      <label for="description">Description:</label>
+      <textarea
+        id="description"
+        name="description"
+        rows="4"
+        required
+      ></textarea>
+
+      <label for="passportCopy">Passport Copy:</label>
+      <input type="file" id="passportCopy" name="passportCopy" multiple />
+      <div class="error" id="fileError"></div>
+
+      <label for="visaCopy">Visa Copy:</label>
+      <input type="file" id="visaCopy" name="visaCopy" multiple />
+      <div class="error" id="fileError"></div>
+
+      <label for="attachedDocuments">Supporting Documentation:</label>
+      <input
+        type="file"
+        id="attachedDocuments"
+        name="attachedDocuments"
+        multiple
+      />
+      <div class="error" id="fileError"></div>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress"></div>
+        </div>
+      </div>
+
+      <input
+        type="hidden"
+        id="queryCategory"
+        name="queryCategory"
+        value="Campus Queries"
+      />
+      <input type="hidden" id="queryName" name="queryName" />
+
+      <button type="submit" id="submitButton">Submit Query</button>
+    </form>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+      };
+
+      // Initialize Firebase
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.firestore();
+      const storage = firebase.storage();
+
+      // DOM Elements
+      const elements = {
+        loadStudentDataButton: document.getElementById("loadStudentData"),
+        studentNumberForm: document.getElementById("studentNumberForm"),
+        queryForm: document.getElementById("queryForm"),
+        inputStudentId: document.getElementById("inputStudentId"),
+        queryType: document.getElementById("queryType"),
+        fileInput: document.getElementById("attachedDocuments"),
+      };
+
+      // Firebase configuration remains the same
+
+      async function loadStudentData() {
+        const studentId = elements.inputStudentId.value.trim();
+
+        if (!studentId) {
+          alert("Please enter a student number");
+          return;
+        }
+
+        try {
+          elements.loadStudentDataButton.disabled = true;
+
+          // Fetch student registration data
+          const regSnapshot = await db
+            .collection("CampusRegistration")
+            .doc(studentId)
+            .get();
+
+          if (!regSnapshot.exists) {
+            throw new Error("Student registration not found");
+          }
+
+          const regData = regSnapshot.data();
+
+          // Populate form fields with registration data
+          document.getElementById(
+            "name"
+          ).value = `${regData.name} ${regData.surname}`;
+          document.getElementById("studentId").value = studentId;
+          document.getElementById("campus").value =
+            regData.campus || "Not specified";
+          document.getElementById("qualification").value =
+            regData.qualificationId || "Not specified";
+          document.getElementById("deliveryMode").value =
+            regData.deliveryMode || "Not specified";
+          document.getElementById("studyType").value =
+            regData.studyType || "Not specified";
+
+          // Now fetch student modules
+          const moduleSelect = document.getElementById("module");
+          moduleSelect.innerHTML = '<option value="">Select a module</option>';
+
+          const modulesSnapshot = await db
+            .collection("StudentModules")
+            .doc(studentId)
+            .get();
+
+          if (modulesSnapshot.exists) {
+            const studentData = modulesSnapshot.data();
+            if (
+              studentData.registrations &&
+              studentData.registrations[0] &&
+              studentData.registrations[0].modules
+            ) {
+              const modules = studentData.registrations[0].modules;
+
+              // Add each module to the select dropdown
+              Object.values(modules).forEach((module) => {
+                if (module.moduleCode && module.moduleName) {
+                  const option = document.createElement("option");
+                  option.value = module.moduleCode;
+                  option.textContent = `${module.moduleCode} - ${module.moduleName}`;
+                  moduleSelect.appendChild(option);
+                }
+              });
+            }
+          }
+
+          // Show the query form
+          elements.studentNumberForm.style.display = "none";
+          elements.queryForm.style.display = "block";
+        } catch (error) {
+          console.error("Error:", error);
+          alert(error.message);
+        } finally {
+          elements.loadStudentDataButton.disabled = false;
+        }
+      }
+      // Update query name when query type changes
+      elements.queryType.addEventListener("change", function () {
+        document.getElementById("queryName").value = this.value;
+      });
+
+      // Handle form submission
+      document
+        .getElementById("queryForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          try {
+            const formData = new FormData(this);
+            const files = elements.fileInput.files;
+
+            // Create query document
+            const queryData = {
+              name: formData.get("name"),
+              studentId: formData.get("studentId"),
+              campus: formData.get("campus"),
+              qualification: formData.get("qualification"),
+              deliveryMode: formData.get("deliveryMode"),
+              studyType: formData.get("studyType"),
+              queryType: formData.get("queryType"),
+              documentType: formData.get("documentType"),
+              visaStatus: formData.get("visaStatus"),
+              purpose: formData.get("purpose"),
+              urgencyLevel: formData.get("urgencyLevel"),
+              passportNumber: formData.get("passportNumber"),
+              visaExpiryDate: formData.get("visaExpiryDate"),
+              additionalInfo: formData.get("additionalInfo"),
+              description: formData.get("description"),
+              passportCopy: formData.get("passportCopy"),
+              visaCopy: formData.get("visaCopy"),
+              queryCategory: "Campus Queries",
+              queryName: formData.get("Visa Query"),
+              status: "Pending",
+              dateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
+              attachedDocuments: [],
+            };
+
+            // Add query to Firestore
+            const queryRef = await db.collection("CampusQuery").add(queryData);
+
+            // Upload files if any
+            if (files.length > 0) {
+              const uploadPromises = Array.from(files).map((file) => {
+                const filePath = `queries/${queryRef.id}/${file.name}`;
+                return storage
+                  .ref(filePath)
+                  .put(file)
+                  .then((snapshot) => snapshot.ref.getDownloadURL());
+              });
+
+              const fileUrls = await Promise.all(uploadPromises);
+              await queryRef.update({ attachedDocuments: fileUrls });
+            }
+
+            alert("Query submitted successfully!");
+            this.reset();
+            elements.queryForm.style.display = "none";
+            elements.studentNumberForm.style.display = "block";
+          } catch (error) {
+            console.error("Error submitting query:", error);
+            alert("Error submitting query. Please try again.");
+          }
+        });
+
+      // Event listener for student number input
+      elements.loadStudentDataButton.addEventListener("click", loadStudentData);
+      elements.inputStudentId.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          loadStudentData();
+        }
+      });
+    </script>
+    <button onclick="window.location.href='StudentQueryDashboard.html'">
+      Back
+    </button>
+  </body>
+</html>
