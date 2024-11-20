@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Registration</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f0f2f5;
+      }
+
+      .navbar {
+        background-color: #4285f4;
+        padding: 1rem 2rem;
+        color: white;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #333;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #333;
+        font-weight: bold;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+
+      .readonly-field {
+        background-color: #f5f5f5;
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+
+      .submit-btn:hover {
+        background-color: #3367d6;
+      }
+
+      .error-message {
+        color: red;
+        font-size: 0.8rem;
+        margin-top: 0.2rem;
+      }
+
+      .success-message {
+        color: green;
+        font-size: 0.8rem;
+        margin-top: 0.2rem;
+      }
+
+      .footer {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 1rem;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">Kampus Konnect</div>
+    </nav>
+
+    <div class="container">
+      <h1>Campus Registration</h1>
+      <form id="registrationForm">
+        <div class="form-group">
+          <label for="studentId">Student ID</label>
+          <input type="text" id="studentId" name="studentId" required />
+          <button type="button" id="fetchStudent" style="margin-top: 0.5rem">
+            Fetch Student Details
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            class="readonly-field"
+            readonly
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="surname">Surname</label>
+          <input
+            type="text"
+            id="surname"
+            name="surname"
+            class="readonly-field"
+            readonly
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="readonly-field"
+            readonly
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="campus">Campus</label>
+          <input type="text" id="campus" name="campus" required />
+        </div>
+
+        <div class="form-group">
+          <label for="studyType">Study Type</label>
+          <select id="studyType" name="studyType" required>
+            <option value="">Select Study Type</option>
+            <option value="Full Time">Full Time</option>
+            <option value="Part Time">Part Time</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="deliveryMode">Mode of Delivery</label>
+          <select id="deliveryMode" name="deliveryMode" required>
+            <option value="">Select Mode of Delivery</option>
+            <option value="Contact Studies">Contact Studies</option>
+            <option value="Distance Studies">Distance Studies</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="qualification">Qualification</label>
+          <select id="qualification" name="qualification" required>
+            <option value="">Select Qualification</option>
+          </select>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <button type="submit" class="submit-btn">Register</button>
+      </form>
+    </div>
+
+    <footer class="footer">
+      <p>© 2024 KampusKonnect. All rights reserved.</p>
+    </footer>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+        setDoc,
+        doc,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        databaseURL: "https://kampus-konnect-38932-default-rtdb.firebaseio.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+        measurementId: "G-4DV0GBX6YM",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Get DOM elements
+      const fetchButton = document.getElementById("fetchStudent");
+      const form = document.getElementById("registrationForm");
+      const errorMessage = document.getElementById("errorMessage");
+      const successMessage = document.getElementById("successMessage");
+      const qualificationSelect = document.getElementById("qualification");
+
+      // Load qualifications when the page loads
+      async function loadQualifications() {
+        try {
+          const qualificationsRef = collection(db, "qualifications");
+          const querySnapshot = await getDocs(qualificationsRef);
+
+          // Clear existing options except the first one
+          qualificationSelect.innerHTML =
+            '<option value="">Select Qualification</option>';
+
+          querySnapshot.forEach((doc) => {
+            const qualification = doc.data();
+            const option = document.createElement("option");
+            option.value = doc.id;
+            option.textContent = qualification.name;
+            qualificationSelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error loading qualifications:", error);
+          errorMessage.textContent = "Error loading qualifications";
+        }
+      }
+
+      // Load qualifications when the page loads
+      document.addEventListener("DOMContentLoaded", loadQualifications);
+
+      // Fetch student details
+      fetchButton.addEventListener("click", async () => {
+        const studentId = document.getElementById("studentId").value;
+        if (!studentId) {
+          errorMessage.textContent = "Please enter a Student ID";
+          return;
+        }
+
+        try {
+          // Create a query to find the student by studentId
+          const studentsRef = collection(db, "students");
+          const q = query(studentsRef, where("studentId", "==", studentId));
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            // Get the first matching document
+            const studentData = querySnapshot.docs[0].data();
+
+            // Populate the form fields
+            document.getElementById("name").value = studentData.firstName || "";
+            document.getElementById("surname").value =
+              studentData.lastName || "";
+            document.getElementById("email").value = studentData.email || "";
+
+            errorMessage.textContent = "";
+            successMessage.textContent = "Student details fetched successfully";
+          } else {
+            errorMessage.textContent = "Student not found";
+            successMessage.textContent = "";
+            // Clear the form fields
+            document.getElementById("name").value = "";
+            document.getElementById("surname").value = "";
+            document.getElementById("email").value = "";
+          }
+        } catch (error) {
+          console.error("Error fetching student:", error);
+          errorMessage.textContent = "Error fetching student details";
+          successMessage.textContent = "";
+        }
+      });
+
+      // Handle form submission
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const studentId = document.getElementById("studentId").value;
+        const name = document.getElementById("name").value;
+        const surname = document.getElementById("surname").value;
+        const email = document.getElementById("email").value;
+        const campus = document.getElementById("campus").value;
+        const studyType = document.getElementById("studyType").value;
+        const deliveryMode = document.getElementById("deliveryMode").value;
+        const qualification = document.getElementById("qualification").value;
+
+        if (!name || !surname || !email) {
+          errorMessage.textContent = "Please fetch student details first";
+          return;
+        }
+
+        try {
+          // Create a new document in CampusRegistration collection
+          await setDoc(doc(db, "CampusRegistration", studentId), {
+            studentId,
+            name,
+            surname,
+            email,
+            campus,
+            studyType,
+            deliveryMode,
+            qualificationId: qualification, // Store the qualification ID
+            timestamp: new Date().toISOString(),
+          });
+
+          successMessage.textContent = "Registration successful!";
+          errorMessage.textContent = "";
+          form.reset();
+
+          // Redirect to confirmation page or dashboard after a short delay
+          setTimeout(() => {
+            window.location.href = "StudentDashboard.html";
+          }, 2000);
+        } catch (error) {
+          console.error("Error submitting registration:", error);
+          errorMessage.textContent = "Error submitting registration";
+          successMessage.textContent = "";
+        }
+      });
+    </script>
+  </body>
+</html>
