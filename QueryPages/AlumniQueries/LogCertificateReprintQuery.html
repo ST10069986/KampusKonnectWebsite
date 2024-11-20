@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Log a Student Hub Query</title>
+    <title>Log an Alumni Query</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -74,7 +74,7 @@
     </style>
   </head>
   <body>
-    <h1>Log an External Credit Query</h1>
+    <h1>Log a Certificate Reprint Query</h1>
 
     <div id="studentNumberForm">
       <label for="inputStudentId">Enter Your Student Number:</label>
@@ -104,77 +104,26 @@
       <label for="queryType">Query Type:</label>
       <select id="queryType" name="queryType" required>
         <option value="">Select Query Type</option>
-        <option value="External Credit">External Credit</option>
-      </select>
-
-      <label for="module">Module:</label>
-      <select id="module" name="module" required>
-        <option value="">Select a module</option>
-      </select>
-
-      <label for="academicPeriod">Academic Period:</label>
-      <select id="academicPeriod" name="academicPeriod">
-        <option value="">Select Academic Period</option>
-        <option value="Semester 1 - 2024">Semester 1 - 2024</option>
-        <option value="Semester 2 - 2024">Semester 2 - 2024</option>
-        <option value="Year-long Module - 2024">Year-long Module - 2024</option>
-      </select>
-
-      <label for="requestType">Request Type:</label>
-      <select id="requestType" name="requestType">
-        <option value="">Select the Request Type</option>
-        <option value="Credit Transfer">Credit Transfer</option>
-        <option value="Module Exemption">Module Exemption</option>
-        <option value="Recognition of Prior Learning">
-          Recognition of Prior Learning
-        </option>
-        <option value="International Qualification Credit">
-          International Qualification Credit
-        </option>
-        <option value="Professional Certification Credit">
-          Professional Certification Credit
+        <option value="Alumni Certificate Reprint">
+          Alumni Certificate Reprint
         </option>
       </select>
 
-      <label for="previousInstitution">Previous Institution:</label>
-      <textarea
-        id="previousInstitution"
-        name="previousInstitution"
-        rows="1"
-        required
-      ></textarea>
+      <label for="reprintReason">Reprint Reason:</label>
+      <select id="reprintReason" name="reprintReason">
+        <option value="">Select a Graduation Year</option>
+        <option value="Lost Certificate">Lost Certificate</option>
+        <option value="Damaged Certficate">Damaged Certficate</option>
+        <option value="Name Change">Name Change</option>
+        <option value="Stolen Certificate">Stolen Certificate</option>
+        <option value="Never Received Original">Never Received Original</option>
+        <option value="Other">Other</option>
+      </select>
 
-      <label for="previousQualification">Previous Qualification:</label>
+      <label for="additionalDetails">Additional Details:</label>
       <textarea
-        id="previousQualification"
-        name="previousQualification"
-        rows="1"
-        required
-      ></textarea>
-
-      <label for="previousModule">Previous Module:</label>
-      <textarea
-        id="previousModule"
-        name="previousModule"
-        rows="1"
-        required
-      ></textarea>
-
-      <label for="completionDate">Completion Date:</label>
-      <textarea
-        id="completionDate"
-        name="completionDate"
-        rows="1"
-        required
-      ></textarea>
-
-      <label for="finalMark">Final Mark:</label>
-      <textarea id="finalMark" name="finalMark" rows="1" required></textarea>
-
-      <label for="additionalInfo">Additional Information:</label>
-      <textarea
-        id="additionalInfo"
-        name="additionalInfo"
+        id="additionalDetails"
+        name="additionalDetails"
         rows="4"
         required
       ></textarea>
@@ -198,7 +147,7 @@
         type="hidden"
         id="queryCategory"
         name="queryCategory"
-        value="Student Hub Queries"
+        value="Alumni Student Queries"
       />
       <input type="hidden" id="queryName" name="queryName" />
 
@@ -276,36 +225,6 @@
           document.getElementById("studyType").value =
             regData.studyType || "Not specified";
 
-          // Now fetch student modules
-          const moduleSelect = document.getElementById("module");
-          moduleSelect.innerHTML = '<option value="">Select a module</option>';
-
-          const modulesSnapshot = await db
-            .collection("StudentModules")
-            .doc(studentId)
-            .get();
-
-          if (modulesSnapshot.exists) {
-            const studentData = modulesSnapshot.data();
-            if (
-              studentData.registrations &&
-              studentData.registrations[0] &&
-              studentData.registrations[0].modules
-            ) {
-              const modules = studentData.registrations[0].modules;
-
-              // Add each module to the select dropdown
-              Object.values(modules).forEach((module) => {
-                if (module.moduleCode && module.moduleName) {
-                  const option = document.createElement("option");
-                  option.value = module.moduleCode;
-                  option.textContent = `${module.moduleCode} - ${module.moduleName}`;
-                  moduleSelect.appendChild(option);
-                }
-              });
-            }
-          }
-
           // Show the query form
           elements.studentNumberForm.style.display = "none";
           elements.queryForm.style.display = "block";
@@ -339,27 +258,18 @@
               qualification: formData.get("qualification"),
               deliveryMode: formData.get("deliveryMode"),
               studyType: formData.get("studyType"),
-              academicPeriod: formData.get("academicPeriod"),
-              requestType: formData.get("requestType"),
-              previousInstitution: formData.get("previousInstitution"),
-              previousQualification: formData.get("previousQualification"),
-              previousModule: formData.get("previousModule"),
-              completionDate: formData.get("completionDate"),
-              finalMark: formData.get("finalMark"),
-              module: formData.get("module"),
+              reprintReason: formData.get("reprintReason"),
               queryType: formData.get("queryType"),
-              additionalInfo: formData.get("additionalInfo"),
-              queryCategory: "Student Hub Queries",
-              queryName: formData.get("External Credit Request"),
+              additionalDetails: formData.get("additionalDetails"),
+              queryCategory: "Alumni Student Queries",
+              queryName: formData.get("Alumni Certificate Reprint Request"),
               status: "Pending",
               dateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
               attachedDocuments: [],
             };
 
             // Add query to Firestore
-            const queryRef = await db
-              .collection("StudentHubQuery")
-              .add(queryData);
+            const queryRef = await db.collection("AlumniQuery").add(queryData);
 
             // Upload files if any
             if (files.length > 0) {

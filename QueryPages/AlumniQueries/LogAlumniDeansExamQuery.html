@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Log a Student Hub Query</title>
+    <title>Log an Alumni Query</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -74,7 +74,7 @@
     </style>
   </head>
   <body>
-    <h1>Log an External Credit Query</h1>
+    <h1>Log an Alumni Deans Examination Query</h1>
 
     <div id="studentNumberForm">
       <label for="inputStudentId">Enter Your Student Number:</label>
@@ -104,7 +104,7 @@
       <label for="queryType">Query Type:</label>
       <select id="queryType" name="queryType" required>
         <option value="">Select Query Type</option>
-        <option value="External Credit">External Credit</option>
+        <option value="Alumni Deans Exam">Alumni Deans Exam</option>
       </select>
 
       <label for="module">Module:</label>
@@ -120,61 +120,46 @@
         <option value="Year-long Module - 2024">Year-long Module - 2024</option>
       </select>
 
-      <label for="requestType">Request Type:</label>
-      <select id="requestType" name="requestType">
-        <option value="">Select the Request Type</option>
-        <option value="Credit Transfer">Credit Transfer</option>
-        <option value="Module Exemption">Module Exemption</option>
-        <option value="Recognition of Prior Learning">
-          Recognition of Prior Learning
-        </option>
-        <option value="International Qualification Credit">
-          International Qualification Credit
-        </option>
-        <option value="Professional Certification Credit">
-          Professional Certification Credit
-        </option>
+      <label for="examType">Exam Type:</label>
+      <select id="examType" name="examType">
+        <option value="">Select the Exam Type</option>
+        <option value="Final Opportunity">Final Opportunity</option>
+        <option value="Special Exam">Special Exam</option>
+        <option value="Supplementary Exam">Supplementary Exam</option>
+        <option value="Alumni Rewrite">Alumni Rewrite</option>
+        <option value="Completion Exam">Completion Exam</option>
       </select>
 
-      <label for="previousInstitution">Previous Institution:</label>
+      <label for="reason">Reason:</label>
+      <select id="reason" name="reason">
+        <option value="">Select a Reason</option>
+        <option value="Previous Failed Attempts">
+          Previous Failed Attempts
+        </option>
+        <option value="Module Required for Completion">
+          Module Required for Completion
+        </option>
+        <option value="Professional Requirement">
+          Professional Requirement
+        </option>
+        <option value="Work Commitments">Work Commitments</option>
+        <option value="Career Advancement">Career Advancement</option>
+        <option value="Course Progression">Course Progression</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="lastEnrollmentDate">Last Enrollment Date:</label>
       <textarea
-        id="previousInstitution"
-        name="previousInstitution"
+        id="lastEnrollmentDate"
+        name="lastEnrollmentDate"
         rows="1"
         required
       ></textarea>
 
-      <label for="previousQualification">Previous Qualification:</label>
+      <label for="description">Description:</label>
       <textarea
-        id="previousQualification"
-        name="previousQualification"
-        rows="1"
-        required
-      ></textarea>
-
-      <label for="previousModule">Previous Module:</label>
-      <textarea
-        id="previousModule"
-        name="previousModule"
-        rows="1"
-        required
-      ></textarea>
-
-      <label for="completionDate">Completion Date:</label>
-      <textarea
-        id="completionDate"
-        name="completionDate"
-        rows="1"
-        required
-      ></textarea>
-
-      <label for="finalMark">Final Mark:</label>
-      <textarea id="finalMark" name="finalMark" rows="1" required></textarea>
-
-      <label for="additionalInfo">Additional Information:</label>
-      <textarea
-        id="additionalInfo"
-        name="additionalInfo"
+        id="description"
+        name="description"
         rows="4"
         required
       ></textarea>
@@ -198,7 +183,7 @@
         type="hidden"
         id="queryCategory"
         name="queryCategory"
-        value="Student Hub Queries"
+        value="Alumni Student Queries"
       />
       <input type="hidden" id="queryName" name="queryName" />
 
@@ -339,27 +324,22 @@
               qualification: formData.get("qualification"),
               deliveryMode: formData.get("deliveryMode"),
               studyType: formData.get("studyType"),
-              academicPeriod: formData.get("academicPeriod"),
-              requestType: formData.get("requestType"),
-              previousInstitution: formData.get("previousInstitution"),
-              previousQualification: formData.get("previousQualification"),
-              previousModule: formData.get("previousModule"),
-              completionDate: formData.get("completionDate"),
-              finalMark: formData.get("finalMark"),
               module: formData.get("module"),
+              academicPeriod: formData.get("academicPeriod"),
+              examType: formData.get("examType"),
+              reason: formData.get("reason"),
+              lastEnrollmentDate: formData.get("lastEnrollmentDate"),
               queryType: formData.get("queryType"),
-              additionalInfo: formData.get("additionalInfo"),
-              queryCategory: "Student Hub Queries",
-              queryName: formData.get("External Credit Request"),
+              description: formData.get("description"),
+              queryCategory: "Alumni Student Queries",
+              queryName: formData.get("ALumni Dean's Exam Request"),
               status: "Pending",
               dateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
               attachedDocuments: [],
             };
 
             // Add query to Firestore
-            const queryRef = await db
-              .collection("StudentHubQuery")
-              .add(queryData);
+            const queryRef = await db.collection("AlumniQuery").add(queryData);
 
             // Upload files if any
             if (files.length > 0) {
