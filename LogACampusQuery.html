@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log a Campus Query</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+      form,
+      #studentNumberForm {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #0056b3;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      button:hover {
+        background-color: #003d82;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #backButton {
+        background-color: #6c757d;
+        margin-right: 10px;
+      }
+      #backButton:hover {
+        background-color: #5a6268;
+      }
+      .progress-container {
+        margin-top: 10px;
+        display: none;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+      }
+      .progress {
+        height: 100%;
+        background-color: #0056b3;
+        border-radius: 4px;
+        width: 0%;
+        transition: width 0.2s ease;
+      }
+      .progress-text {
+        font-size: 0.8em;
+        margin-top: 5px;
+        color: #666;
+      }
+      .error {
+        color: red;
+        margin-top: 5px;
+        font-size: 0.9em;
+      }
+      .category-display {
+        background-color: #e9ecef;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Log a Campus Query</h1>
+    <div id="studentNumberForm">
+      <label for="inputStudentNumber">Enter Your Student Number:</label>
+      <input type="text" id="inputStudentNumber" required />
+      <button id="loadStudentData">Load Student Data</button>
+      <button
+        type="button"
+        id="backButton"
+        onclick="window.location.href='RaiseACampusQuery.html'"
+      >
+        Back
+      </button>
+    </div>
+    <form id="queryForm" style="display: none">
+      <button
+        type="button"
+        class="backButton"
+        onclick="window.location.href='LogACampusQuery.html'"
+      >
+        Back
+      </button>
+
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" readonly />
+
+      <label for="studentNumber">Student Number:</label>
+      <input type="text" id="studentNumber" name="studentNumber" readonly />
+
+      <label for="campus">Campus:</label>
+      <input type="text" id="campus" name="campus" readonly />
+
+      <label for="deliveryMode">Delivery Mode:</label>
+      <input type="text" id="deliveryMode" name="deliveryMode" readonly />
+
+      <label for="studyType">Study Type:</label>
+      <input type="text" id="studyType" name="studyType" readonly />
+
+      <label for="queryCategory">Query Category:</label>
+      <select id="queryCategory" name="queryCategory" required>
+        <option value="">Select Query Category</option>
+        <option value="Academic">Academic</option>
+        <option value="Financial">Financial</option>
+        <option value="IT Support">IT Support</option>
+        <option value="Library">Library</option>
+        <option value="Student Life">Student Life</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="queryType">Query Type:</label>
+      <select id="queryType" name="queryType" required>
+        <option value="">Select Query Type</option>
+      </select>
+
+      <label for="module">Module:</label>
+      <select id="module" name="module" required>
+        <option value="">Select a module</option>
+      </select>
+
+      <label for="description">Description:</label>
+      <textarea
+        id="description"
+        name="description"
+        rows="4"
+        required
+      ></textarea>
+
+      <label for="supportingDocs"
+        >Supporting Documentation (Max 5MB per file):</label
+      >
+      <input
+        type="file"
+        id="supportingDocs"
+        name="supportingDocs"
+        multiple
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+      />
+      <div class="error" id="fileError"></div>
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress"></div>
+        </div>
+        <div class="progress-text">
+          Uploading: <span id="progressText">0%</span>
+        </div>
+      </div>
+
+      <button type="submit" id="submitButton">Submit Query</button>
+    </form>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <script>
+      const queryTypeOptions = {
+        Academic: [
+          "Module Content Query",
+          "Assignment Question",
+          "Consultation Request",
+          "Study Material Query",
+          "Assessment Feedback",
+          "Academic Performance",
+          "Tutorial Support",
+        ],
+        Financial: [
+          "Payment Query",
+          "Fee Structure",
+          "Refund Request",
+          "Financial Aid",
+          "Payment Plan",
+          "Invoice Request",
+          "Statement Request",
+        ],
+        "IT Support": [
+          "Technical Issue",
+          "Login Problems",
+          "System Access",
+          "Software Installation",
+          "Hardware Problem",
+          "Password Reset",
+          "Online Platform Issue",
+        ],
+        Library: [
+          "Resource Access",
+          "Book Request",
+          "Database Query",
+          "Library Account",
+          "Research Support",
+          "Citation Help",
+          "Inter-library Loan",
+        ],
+        "Student Life": [
+          "Campus Activities",
+          "Student Organizations",
+          "Housing Query",
+          "Student Wellness",
+          "Campus Facilities",
+          "Sports & Recreation",
+          "Student Support",
+        ],
+        Other: [
+          "General Inquiry",
+          "Documentation Request",
+          "Process Query",
+          "Complaint",
+          "Suggestion",
+          "Feedback",
+        ],
+      };
+
+      // Firebase initialization
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        databaseURL: "https://kampus-konnect-38932-default-rtdb.firebaseio.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+        measurementId: "G-4DV0GBX6YM",
+      };
+
+      // Initialize Firebase
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.firestore();
+      const storage = firebase.storage();
+
+      // Constants
+      const MAX_FILE_SIZE = 5 * 1024 * 1024;
+      const UPLOAD_TIMEOUT = 30000;
+
+      // DOM Elements
+      const elements = {
+        loadStudentDataButton: document.getElementById("loadStudentData"),
+        studentNumberForm: document.getElementById("studentNumberForm"),
+        queryForm: document.getElementById("queryForm"),
+        inputStudentNumber: document.getElementById("inputStudentNumber"),
+        backButton: document.querySelector(".backButton"),
+        fileInput: document.getElementById("supportingDocs"),
+        fileError: document.getElementById("fileError"),
+        progressContainer: document.getElementById("progressContainer"),
+        progressBar: document.querySelector(".progress"),
+        progressText: document.getElementById("progressText"),
+        submitButton: document.getElementById("submitButton"),
+        queryCategory: document.getElementById("queryCategory"),
+        queryType: document.getElementById("queryType"),
+      };
+
+      // Function to update query types based on selected category
+      function updateQueryTypes(category) {
+        const queryTypeSelect = elements.queryType;
+        queryTypeSelect.innerHTML =
+          '<option value="">Select Query Type</option>';
+
+        if (category && queryTypeOptions[category]) {
+          queryTypeOptions[category].forEach((type) => {
+            const option = document.createElement("option");
+            option.value = type;
+            option.textContent = type;
+            queryTypeSelect.appendChild(option);
+          });
+        }
+      }
+
+      // File validation function
+      function validateFiles() {
+        const files = elements.fileInput.files;
+        elements.fileError.textContent = "";
+
+        for (const file of files) {
+          if (file.size > MAX_FILE_SIZE) {
+            elements.fileError.textContent = `${file.name} exceeds 5MB limit`;
+            elements.fileInput.value = "";
+            return false;
+          }
+        }
+        return true;
+      }
+
+      // File upload function with timeout
+      async function uploadFileWithTimeout(file, path) {
+        return new Promise((resolve, reject) => {
+          const fileRef = storage.ref(path);
+          const uploadTask = fileRef.put(file);
+          let timeoutId;
+
+          const cleanup = () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            uploadTask.cancel();
+          };
+
+          timeoutId = setTimeout(() => {
+            cleanup();
+            reject(new Error("Upload timed out"));
+          }, UPLOAD_TIMEOUT);
+
+          uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+              const progress =
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              elements.progressBar.style.width = `${progress}%`;
+              elements.progressText.textContent = `${Math.round(progress)}%`;
+            },
+            (error) => {
+              cleanup();
+              reject(error);
+            },
+            async () => {
+              try {
+                const url = await uploadTask.snapshot.ref.getDownloadURL();
+                cleanup();
+                resolve(url);
+              } catch (error) {
+                cleanup();
+                reject(error);
+              }
+            }
+          );
+        });
+      }
+
+      // Load student data function
+      async function loadStudentData() {
+        const studentNumber = elements.inputStudentNumber.value.trim();
+
+        if (!studentNumber) {
+          alert("Please enter a student number.");
+          return;
+        }
+
+        try {
+          elements.loadStudentDataButton.disabled = true;
+          elements.loadStudentDataButton.textContent = "Loading...";
+
+          const studentSnapshot = await db
+            .collection("students")
+            .where("studentId", "==", studentNumber)
+            .limit(1)
+            .get();
+
+          if (studentSnapshot.empty) {
+            throw new Error("Student not found");
+          }
+
+          const studentData = studentSnapshot.docs[0].data();
+          document.getElementById(
+            "name"
+          ).value = `${studentData.firstName} ${studentData.lastName}`;
+          document.getElementById("studentNumber").value = studentNumber;
+
+          // Load campus data
+          const campusRegSnapshot = await db
+            .collection("CampusRegistration")
+            .where("studentId", "==", studentNumber)
+            .limit(1)
+            .get();
+
+          if (!campusRegSnapshot.empty) {
+            const campusData = campusRegSnapshot.docs[0].data();
+            document.getElementById("campus").value =
+              campusData.campus || "Not specified";
+            document.getElementById("deliveryMode").value =
+              campusData.deliveryMode || "Not specified";
+            document.getElementById("studyType").value =
+              campusData.studyType || "Not specified";
+          }
+
+          // Load modules
+          const moduleSelect = document.getElementById("module");
+          moduleSelect.innerHTML = '<option value="">Select a module</option>';
+
+          const modulesSnapshot = await db
+            .collection("studentModules")
+            .where("studentId", "==", studentNumber)
+            .get();
+
+          modulesSnapshot.forEach((doc) => {
+            const moduleData = doc.data();
+            const option = document.createElement("option");
+            option.value = moduleData.moduleCode;
+            option.textContent = `${moduleData.moduleCode} - ${moduleData.moduleName}`;
+            moduleSelect.appendChild(option);
+          });
+
+          elements.studentNumberForm.style.display = "none";
+          elements.queryForm.style.display = "block";
+        } catch (error) {
+          console.error("Error loading student data:", error);
+          alert(
+            `Error: ${
+              error.message || "Failed to load student data. Please try again."
+            }`
+          );
+        } finally {
+          elements.loadStudentDataButton.disabled = false;
+          elements.loadStudentDataButton.textContent = "Load Student Data";
+        }
+      }
+
+      // Event Listeners
+      document.addEventListener("DOMContentLoaded", () => {
+        elements.loadStudentDataButton.addEventListener(
+          "click",
+          loadStudentData
+        );
+
+        elements.inputStudentNumber.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            loadStudentData();
+          }
+        });
+
+        elements.backButton.addEventListener("click", () => {
+          elements.queryForm.style.display = "none";
+          elements.studentNumberForm.style.display = "block";
+        });
+
+        elements.fileInput.addEventListener("change", validateFiles);
+
+        elements.queryCategory.addEventListener("change", (e) => {
+          updateQueryTypes(e.target.value);
+        });
+
+        elements.queryForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          if (!validateFiles()) return;
+
+          const formData = new FormData(e.target);
+          const files = elements.fileInput.files;
+          const queryCategory = elements.queryCategory.value;
+          const queryType = elements.queryType.value;
+          const studentNumber = document.getElementById("studentNumber").value;
+
+          if (!queryCategory || !queryType) {
+            alert("Please select both query category and type");
+            return;
+          }
+
+          elements.submitButton.disabled = true;
+          elements.progressContainer.style.display = "block";
+          elements.progressBar.style.width = "0%";
+          elements.progressText.textContent = "0%";
+
+          try {
+            const queryRef = await db.collection("CampusQuery").add({
+              name: document.getElementById("name").value,
+              studentNumber: studentNumber,
+              campus: document.getElementById("campus").value,
+              deliveryMode: document.getElementById("deliveryMode").value,
+              studyType: document.getElementById("studyType").value,
+              queryCategory: queryCategory,
+              queryType: queryType,
+              module: formData.get("module"),
+              description: formData.get("description"),
+              supportingDocuments: [],
+              status: "Pending",
+              dateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
+              lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Upload files one by one
+            const fileUrls = [];
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              const fileName = `${Date.now()}_${file.name}`;
+              const filePath = `supportingDocs/${queryRef.id}/${fileName}`;
+
+              try {
+                const url = await uploadFileWithTimeout(file, filePath);
+                fileUrls.push(url);
+              } catch (error) {
+                console.error(`Error uploading ${file.name}:`, error);
+                throw new Error(
+                  `Failed to upload ${file.name}: ${error.message}`
+                );
+              }
+            }
+
+            // Update query with file URLs
+            if (fileUrls.length > 0) {
+              await queryRef.update({
+                supportingDocuments: fileUrls,
+              });
+            }
+
+            alert("Query submitted successfully!");
+            elements.queryForm.reset();
+            elements.queryForm.style.display = "none";
+            elements.studentNumberForm.style.display = "block";
+          } catch (error) {
+            console.error("Error submitting query:", error);
+            alert(`Error: ${error.message}`);
+          } finally {
+            elements.submitButton.disabled = false;
+            elements.progressContainer.style.display = "none";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
