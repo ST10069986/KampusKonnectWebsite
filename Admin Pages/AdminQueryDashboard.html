@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Query Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #ffffff;
+      }
+
+      .navbar {
+        background-color: #85f442;
+        padding: 1rem 2rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 1rem;
+      }
+
+      .dashboard-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-title {
+        color: #333;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+      }
+
+      .progress-section {
+        margin-top: 1rem;
+      }
+
+      .progress-container {
+        background-color: #e9ecef;
+        border-radius: 10px;
+        height: 20px;
+        margin: 1rem 0;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+      }
+
+      .progress-bar {
+        height: 100%;
+        transition: width 0.4s ease;
+      }
+
+      .solved {
+        background-color: #28a745;
+        z-index: 3;
+      }
+
+      .processing {
+        background-color: #17a2b8;
+        z-index: 2;
+      }
+
+      .pending {
+        background-color: #ffc107;
+        z-index: 1;
+      }
+
+      .status-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+      }
+
+      .status-label {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+
+      .solve-btn {
+        width: 100%;
+        padding: 1rem;
+        background-color: #17a2b8;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+
+      .solve-btn:hover {
+        background-color: #138496;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">Admin Dashboard</div>
+    </nav>
+
+    <div class="container">
+      <div class="dashboard-card">
+        <h2 class="card-title">Query Distribution</h2>
+        <div class="chart-container">
+          <canvas id="queryDistribution"></canvas>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <h2 class="card-title">Global Query Completion</h2>
+        <div class="progress-section">
+          <div class="progress-container">
+            <div class="progress-bar solved" id="solvedProgress"></div>
+            <div class="progress-bar processing" id="processingProgress"></div>
+            <div class="progress-bar pending" id="pendingProgress"></div>
+          </div>
+          <div class="status-labels">
+            <div class="status-label">
+              <div class="status-dot solved"></div>
+              <span id="solvedText">Solved: 0%</span>
+            </div>
+            <div class="status-label">
+              <div class="status-dot processing"></div>
+              <span id="processingText">Processing: 0%</span>
+            </div>
+            <div class="status-label">
+              <div class="status-dot pending"></div>
+              <span id="pendingText">Pending: 0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        class="solve-btn"
+        onclick="window.location.href='AdminSolveQuery.html'"
+      >
+        SOLVE QUERIES
+      </button>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+        measurementId: "G-4DV0GBX6YM",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Initialize the donut chart
+      const ctx = document.getElementById("queryDistribution").getContext("2d");
+      const queryChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Campus", "Alumni", "Student Hub"],
+          datasets: [
+            {
+              data: [0, 0, 0],
+              backgroundColor: [
+                "rgb(135, 206, 235)",
+                "rgb(147, 112, 219)",
+                "rgb(255, 105, 180)",
+              ],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          cutout: "60%",
+          plugins: {
+            legend: {
+              position: "bottom",
+            },
+          },
+        },
+      });
+
+      // Improved function to update progress bars
+      function updateProgressBars(solved, processing, pending, total) {
+        if (total === 0) return;
+
+        const solvedPercent = (solved / total) * 100;
+        const processingPercent = (processing / total) * 100;
+        const pendingPercent = (pending / total) * 100;
+
+        // Update the width of progress bars
+        const solvedBar = document.getElementById("solvedProgress");
+        const processingBar = document.getElementById("processingProgress");
+        const pendingBar = document.getElementById("pendingProgress");
+
+        // Set the widths sequentially
+        solvedBar.style.width = `${solvedPercent}%`;
+        processingBar.style.width = `${processingPercent}%`;
+        pendingBar.style.width = `${pendingPercent}%`;
+
+        // Update the text labels
+        document.getElementById(
+          "solvedText"
+        ).textContent = `Solved: ${solvedPercent.toFixed(1)}%`;
+        document.getElementById(
+          "processingText"
+        ).textContent = `Processing: ${processingPercent.toFixed(1)}%`;
+        document.getElementById(
+          "pendingText"
+        ).textContent = `Pending: ${pendingPercent.toFixed(1)}%`;
+      }
+
+      // Function to fetch and process data
+      async function fetchData() {
+        try {
+          const queryCollections = [
+            collection(db, "CampusQuery"),
+            collection(db, "AlumniQuery"),
+            collection(db, "StudentHubQuery"),
+          ];
+
+          const querySnapshots = await Promise.all(
+            queryCollections.map((col) => getDocs(col))
+          );
+
+          const counts = querySnapshots.map((snapshot) => snapshot.size);
+
+          // Update donut chart
+          queryChart.data.datasets[0].data = counts;
+          queryChart.update();
+
+          // Count statuses
+          let solved = 0,
+            processing = 0,
+            pending = 0;
+
+          querySnapshots.forEach((snapshot) => {
+            snapshot.forEach((doc) => {
+              const status = doc.data().status?.toLowerCase() || "pending";
+              if (status === "solved") solved++;
+              else if (status === "processing") processing++;
+              else pending++;
+            });
+          });
+
+          const total = solved + processing + pending;
+          updateProgressBars(solved, processing, pending, total);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+
+      // Initial fetch
+      fetchData();
+
+      // Refresh data every 5 minutes
+      setInterval(fetchData, 300000);
+    </script>
+  </body>
+</html>
