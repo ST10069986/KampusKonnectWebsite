@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Query Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+      }
+      .tile svg {
+        width: 32px; /* Increased size to match original */
+        height: 32px;
+        margin-bottom: 12px;
+      }
+
+      body {
+        background-color: #f5f5f5;
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .search-container {
+        max-width: 800px;
+        margin: 0 auto 20px;
+        position: relative;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 12px 20px 12px 45px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        background-color: white;
+        outline: none;
+      }
+
+      .search-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
+        width: 20px;
+        height: 20px;
+      }
+
+      .section {
+        max-width: 800px;
+        margin: 20px auto;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .section-title {
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        font-weight: 500;
+      }
+
+      .campus-title {
+        background-color: #67e8f9;
+      }
+      .student-title {
+        background-color: #f472b6;
+      }
+      .alumni-title {
+        background-color: #a78bfa;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+        padding: 20px;
+      }
+
+      .tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        background-color: #f8fafc;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: #334155;
+        text-align: center;
+      }
+
+      .tile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #f1f5f9;
+      }
+
+      .tile i {
+        margin-bottom: 12px;
+      }
+
+      .tile span {
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .campus-icon {
+        color: #67e8f9;
+      }
+      .student-icon {
+        color: #f472b6;
+      }
+      .alumni-icon {
+        color: #a78bfa;
+      }
+
+      .button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 12px;
+        background-color: #e2e8f0;
+        border: none;
+        border-radius: 8px;
+        color: #334155;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-decoration: none;
+      }
+
+      .button:hover {
+        background-color: #cbd5e1;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Search container remains the same -->
+    <div class="search-container">
+      <svg
+        class="search-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search queries..."
+        id="searchInput"
+      />
+    </div>
+
+    <!-- Campus Queries Section -->
+    <div class="section">
+      <div class="section-title campus-title">Campus Queries</div>
+      <div class="grid">
+        <!-- Lecturer Query -->
+        <a
+          href="/QueryPages/CampusQueries/LogLecturerQuery.html"
+          class="tile"
+          data-search="lecturer teacher presentation teaching class"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#67e8f9"
+            stroke-width="2"
+          >
+            <path
+              d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"
+            />
+            <path d="M12 11v5" />
+            <path d="M12 7h.01" />
+            <rect x="8" y="3" width="8" height="4" />
+          </svg>
+          <span>Lecturer Query</span>
+        </a>
+
+        <!-- Results Query -->
+        <a
+          href="/QueryPages/CampusQueries/LogResultsQuery.html"
+          class="tile"
+          data-search="results grades marks examination"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#67e8f9"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <path d="M14 2v6h6" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <line x1="10" y1="9" x2="8" y2="9" />
+          </svg>
+          <span>Results Query</span>
+        </a>
+
+        <!-- Timetable Query -->
+        <a
+          href="/QueryPages/CampusQueries/LogTimetableQuery.html"
+          class="tile"
+          data-search="timetable schedule classes timing"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#67e8f9"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span>Timetable Query</span>
+        </a>
+
+        <!-- Finance Query -->
+        <a
+          href="/QueryPages/CampusQueries/LogFinanceQuery.html"
+          class="tile"
+          data-search="finance payment fees money financial"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#67e8f9"
+            stroke-width="2"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
+          <span>Finance Query</span>
+        </a>
+
+        <!-- Assessment Query -->
+        <a
+          href="/QueryPages/CampusQueries/LogAssessmentQuery.html"
+          class="tile"
+          data-search="assessment test exam evaluation"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#67e8f9"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <path d="M14 2v6h6" />
+            <path d="M9 17h6" />
+            <path d="M9 12h6" />
+          </svg>
+          <span>Assessment Query</span>
+        </a>
+
+        <!-- Student Systems Query -->
+        <a
+          href="/QueryPages/CampusQueries/LogStudentSystemsQuery.html"
+          class="tile"
+          data-search="student systems portal access login"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#67e8f9"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span>Student Systems Query</span>
+        </a>
+
+        <!-- PAS Query -->
+        <a
+          href="/QueryPages/CampusQueries/LogPASQuery.html"
+          class="tile"
+          data-search="programme assessment schedule PAS"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#67e8f9"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+            <path d="M8 14h.01" />
+            <path d="M12 14h.01" />
+            <path d="M16 14h.01" />
+            <path d="M8 18h.01" />
+            <path d="M12 18h.01" />
+            <path d="M16 18h.01" />
+          </svg>
+          <span>Programme Assessment Schedule (PAS) Query</span>
+        </a>
+
+        <!-- Visa Query -->
+        <a
+          href="/QueryPages/CampusQueries/LogVisaQuery.html"
+          class="tile"
+          data-search="visa study permit international student"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#67e8f9"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <circle cx="12" cy="12" r="3" />
+            <path d="M3 12h6" />
+            <path d="M15 12h6" />
+          </svg>
+          <span>Student Visa / Study Visa Letter</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Student Hub Queries Section -->
+    <div class="section">
+      <div class="section-title student-title">Student Hub Queries</div>
+      <div class="grid">
+        <!-- Discontinuation Assessment -->
+        <a
+          href="/QueryPages/StudentHubQueries/LogDiscontinuationAssessmentQuery.html"
+          class="tile"
+          data-search="discontinuation assessment stop studies"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f472b6"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <path d="M14 2v6h6" />
+            <line x1="8" y1="12" x2="16" y2="12" />
+          </svg>
+          <span>Application for a Discontinuation Assessment</span>
+        </a>
+
+        <!-- Dean's Exam -->
+        <a
+          href="/QueryPages/StudentHubQueries/LogDeansExamQuery.html"
+          class="tile"
+          data-search="deans exam special assessment"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f472b6"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <path d="M14 2v6h6" />
+            <path d="M12 18v-6" />
+            <path d="M9 15h6" />
+          </svg>
+          <span>Application for Dean's exam</span>
+        </a>
+
+        <!-- Assessment Appeals -->
+        <a
+          href="/QueryPages/StudentHubQueries/LogAssessmentAppealQuery.html"
+          class="tile"
+          data-search="assessment appeals grades dispute"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f472b6"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <path d="M14 2v6h6" />
+            <path d="M12 12v.01" />
+            <path d="M12 16h.01" />
+          </svg>
+          <span>Assessment Appeals</span>
+        </a>
+
+        <!-- Deferred Assessment -->
+        <a
+          href="/QueryPages/StudentHubQueries/LogDeferredAssessmentQuery.html"
+          class="tile"
+          data-search="deferred assessment postpone delay"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f472b6"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>Deferred Assessment</span>
+        </a>
+
+        <!-- Disciplinary Appeals -->
+        <a
+          href="/QueryPages/StudentHubQueries/LogDisciplinaryAppealQuery.html"
+          class="tile"
+          data-search="disciplinary appeals conduct behavior"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f472b6"
+            stroke-width="2"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span>Disciplinary Appeals</span>
+        </a>
+
+        <!-- External Credit -->
+        <a
+          href="/QueryPages/StudentHubQueries/LogExternalCreditQuery.html"
+          class="tile"
+          data-search="external credit transfer recognition"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f472b6"
+            stroke-width="2"
+          >
+            <path d="M12 2v20" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
+          <span>External Credit</span>
+        </a>
+
+        <!-- Increased Credit Load -->
+        <a
+          href="/QueryPages/StudentHubQueries/LogIncreasedCreditLoadQuery.html"
+          class="tile"
+          data-search="increased credit load extra courses"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f472b6"
+            stroke-width="2"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+          </svg>
+          <span>Increased Credit Load</span>
+        </a>
+
+        <!-- Module Exemption -->
+        <a
+          href="/QueryPages/StudentHubQueries/LogModuleExemptionQuery.html"
+          class="tile"
+          data-search="module exemption skip course"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f472b6"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <path d="M14 2v6h6" />
+            <line x1="8" y1="12" x2="16" y2="12" />
+          </svg>
+          <span>Module Exemption</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Alumni Queries Section -->
+    <div class="section">
+      <div class="section-title alumni-title">
+        Alumni/Former Student Queries
+      </div>
+      <div class="grid">
+        <!-- Application for Discontinuation Assessment -->
+        <a
+          href="/QueryPages/AlumniQueries/LogAlumniDiscontinuationQuery.html"
+          class="tile"
+          data-search="discontinuation assessment withdraw"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#a78bfa"
+            stroke-width="2"
+          >
+            <path
+              d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"
+            />
+            <path d="M13 2v7h7" />
+            <line x1="8" y1="13" x2="16" y2="13" />
+            <line x1="8" y1="17" x2="16" y2="17" />
+          </svg>
+          <span>Application for a Discontinuation Assessment</span>
+        </a>
+
+        <!-- Application for Dean's Exam -->
+        <a
+          href="/QueryPages/AlumniQueries/LogAlumniDeansExamQuery.html"
+          class="tile"
+          data-search="dean exam application test"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#a78bfa"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <line x1="9" y1="8" x2="15" y2="8" />
+            <line x1="9" y1="12" x2="15" y2="12" />
+            <line x1="9" y1="16" x2="11" y2="16" />
+          </svg>
+          <span>Application for Dean's exam</span>
+        </a>
+
+        <!-- Application for Graduation -->
+        <a
+          href="/QueryPages/AlumniQueries/LogGraduationConfirmation.html"
+          class="tile"
+          data-search="graduation syllabus confirmation"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#a78bfa"
+            stroke-width="2"
+          >
+            <path d="M12 2l10 5l-10 5L2 7l10-5z" />
+            <path d="M12 12v10" />
+            <path d="M2 7v10l10 5" />
+            <path d="M22 7v10l-10 5" />
+          </svg>
+          <span
+            >Application for Graduation confirmation or Syllabus Request</span
+          >
+        </a>
+
+        <!-- Certificate Reprint -->
+        <a
+          href="/QueryPages/AlumniQueries/LogCertificateReprintQuery.html"
+          class="tile"
+          data-search="certificate reprint copy duplicate"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#a78bfa"
+            stroke-width="2"
+          >
+            <rect x="6" y="4" width="14" height="16" rx="2" />
+            <rect x="4" y="2" width="14" height="16" rx="2" />
+            <line x1="10" y1="10" x2="18" y2="10" />
+            <line x1="10" y1="14" x2="18" y2="14" />
+          </svg>
+          <span>Request for Certificate Reprint</span>
+        </a>
+
+        <!-- Uncollected Certificates -->
+        <a
+          href="/QueryPages/AlumniQueries/LogUncollectedCertificatesQuery.html"
+          class="tile"
+          data-search="uncollected certificates collect pickup"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#a78bfa"
+            stroke-width="2"
+          >
+            <path
+              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+            />
+            <polyline points="22,6 12,13 2,6" />
+          </svg>
+          <span>Request for Uncollected Certificates</span>
+        </a>
+
+        <!-- Transcript Request -->
+        <a
+          href="/QueryPages/AlumniQueries/LogTranscriptRequestQuery.html"
+          class="tile"
+          data-search="transcript academic record grades"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#a78bfa"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="8" y1="13" x2="16" y2="13" />
+            <line x1="8" y1="17" x2="16" y2="17" />
+          </svg>
+          <span>Transcript Request</span>
+        </a>
+      </div>
+    </div>
+
+    <div>
+      <a href="PreviousStudentQueries.html" class="button">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+          />
+        </svg>
+        VIEW PREVIOUS QUERIES
+      </a>
+    </div>
+    <div>
+      <a href="StudentDashboard.html" class="button">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+          />
+        </svg>
+        Back
+      </a>
+    </div>
+
+    <script>
+      const searchInput = document.getElementById("searchInput");
+      const tiles = document.querySelectorAll(".tile");
+      const noResults = document.querySelector(".no-results");
+
+      searchInput.addEventListener("input", function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+        let hasResults = false;
+
+        tiles.forEach((tile) => {
+          const searchText = (
+            tile.textContent +
+            " " +
+            (tile.dataset.search || "")
+          ).toLowerCase();
+          if (searchText.includes(searchTerm)) {
+            tile.classList.remove("hidden");
+            hasResults = true;
+          } else {
+            tile.classList.add("hidden");
+          }
+        });
+
+        noResults.style.display = hasResults ? "none" : "block";
+      });
+    </script>
+  </body>
+</html>

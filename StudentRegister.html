@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Register</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f0f2f5;
+      }
+
+      .navbar {
+        background-color: #4285f4;
+        padding: 1rem 2rem;
+        color: white;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .container {
+        max-width: 400px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #333;
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.8rem;
+        margin: 0.5rem 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+
+      .register-btn {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+
+      .register-btn:hover {
+        background-color: #85f442;
+      }
+
+      .login-link {
+        text-align: center;
+        margin-top: 1rem;
+      }
+
+      .login-link a {
+        color: #85f442;
+        text-decoration: none;
+      }
+
+      .error-message {
+        color: red;
+        font-size: 0.8rem;
+        margin-top: 0.2rem;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 2rem;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .footer {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 1rem;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">Kampus Konnect</div>
+    </nav>
+
+    <div class="container">
+      <h1>Student Registration</h1>
+      <form id="registrationForm">
+        <div class="form-group">
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            placeholder="First Name"
+            required
+          />
+          <span class="error-message" id="firstNameError"></span>
+        </div>
+        <div class="form-group">
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            placeholder="Last Name"
+            required
+          />
+          <span class="error-message" id="lastNameError"></span>
+        </div>
+        <div class="form-group">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Email"
+            required
+          />
+          <span class="error-message" id="emailError"></span>
+        </div>
+        <div class="form-group">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            required
+          />
+          <span class="error-message" id="passwordError"></span>
+        </div>
+        <div class="form-group">
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            required
+          />
+          <span class="error-message" id="confirmPasswordError"></span>
+        </div>
+        <button type="submit" class="register-btn">
+          Register as a Student
+        </button>
+      </form>
+      <div class="login-link">
+        Already have an account? <a href="login.html">Login</a>
+      </div>
+      <div class="login-link">
+        Back to Homepage <a href="index.html">Back</a>
+      </div>
+    </div>
+
+    <div id="studentIdModal" class="modal">
+      <div class="modal-content">
+        <h2>Student Registration Successful!</h2>
+        <p>Your Student ID is: <span id="studentIdDisplay"></span></p>
+        <p>
+          Please save this number. You will need it to register for a Campus.
+        </p>
+        <button
+          class="register-btn"
+          onclick="window.location.href='CampusRegistration.html'"
+        >
+          Go to Campus Registration
+        </button>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>© 2024 KampusKonnect. All rights reserved.</p>
+    </footer>
+
+    <script type="module">
+      // Import the functions you need from the SDKs
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+      import {
+        doc,
+        setDoc,
+      } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+        measurementId: "G-4DV0GBX6YM",
+      };
+
+      // Initialize Firebase and Firestore
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // Generate student ID
+      function generateStudentId() {
+        const prefix = "24";
+        const random = Math.floor(Math.random() * 10000000)
+          .toString()
+          .padStart(8, "0");
+        return prefix + random;
+      }
+
+      // Password validation function
+      function isValidPassword(password) {
+        const passwordRegex =
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        return passwordRegex.test(password);
+      }
+
+      document
+        .getElementById("registrationForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          // Get form values
+          const firstName = document.getElementById("firstName").value;
+          const lastName = document.getElementById("lastName").value;
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const confirmPassword =
+            document.getElementById("confirmPassword").value;
+
+          // Validate password requirements
+          if (!isValidPassword(password)) {
+            alert(
+              "Password must be at least 8 characters long and contain uppercase, lowercase, and numbers."
+            );
+            return;
+          }
+
+          // Check if passwords match
+          if (password !== confirmPassword) {
+            alert("Passwords do not match");
+            return;
+          }
+
+          try {
+            // Create user in Firebase Authentication
+            const userCredential = await createUserWithEmailAndPassword(
+              auth,
+              email,
+              password
+            );
+            const user = userCredential.user;
+
+            // Generate student ID
+            const studentId = generateStudentId();
+
+            // Store additional user data in Firestore
+            await setDoc(doc(db, "students", user.uid), {
+              studentId: studentId,
+              firstName: firstName,
+              lastName: lastName,
+              email: email,
+              password: password,
+              createdAt: Date.now(),
+            });
+
+            // Show success modal with student ID
+            document.getElementById("studentIdDisplay").textContent = studentId;
+            document.getElementById("studentIdModal").style.display = "block";
+          } catch (error) {
+            console.error("Registration error:", error);
+            alert(error.message);
+          }
+        });
+    </script>
+  </body>
+</html>
