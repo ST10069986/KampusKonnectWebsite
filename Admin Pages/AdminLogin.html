@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login</title>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    </script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #85f442;
+      }
+
+      .navbar {
+        background-color: #85f442;
+        padding: 1rem 2rem;
+        color: white;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .container {
+        max-width: 400px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #333;
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.8rem;
+        margin: 0.5rem 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #85f442;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+
+      .login-btn:hover {
+        background-color: #3367d6;
+      }
+
+      .forgot-password {
+        text-align: center;
+        margin-top: 1rem;
+      }
+
+      .forgot-password a {
+        color: #4285f4;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+
+      .error-message {
+        color: red;
+        font-size: 0.8rem;
+        margin-top: 0.2rem;
+        text-align: center;
+      }
+
+      .footer {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 1rem;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">Kampus Konnect Admin</div>
+    </nav>
+
+    <div class="container">
+      <h1>Admin Login</h1>
+      <form id="loginForm">
+        <div class="form-group">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Email"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            required
+          />
+        </div>
+        <div class="error-message" id="errorMessage"></div>
+        <button type="submit" class="login-btn">Admin Login</button>
+      </form>
+      <div class="forgot-password">
+        <a href="ForgotPassword.html">Forgot Password?</a>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>© 2024 KampusKonnect. All rights reserved.</p>
+    </footer>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        databaseURL: "https://kampus-konnect-38932-default-rtdb.firebaseio.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+        measurementId: "G-4DV0GBX6YM",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      // Function to check if user is admin
+      async function checkIfAdmin(uid) {
+        try {
+          const adminQuery = query(
+            collection(db, "admins"),
+            where("uid", "==", uid)
+          );
+          const querySnapshot = await getDocs(adminQuery);
+          return !querySnapshot.empty;
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+          return false;
+        }
+      }
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const errorMessage = document.getElementById("errorMessage");
+
+          try {
+            // First, attempt to authenticate the user
+            const userCredential = await signInWithEmailAndPassword(
+              auth,
+              email,
+              password
+            );
+
+            // Then check if the user is an admin
+            const isAdmin = await checkIfAdmin(userCredential.user.uid);
+
+            if (isAdmin) {
+              // Clear any previous error messages
+              errorMessage.textContent = "";
+
+              // Store admin status in session storage
+              sessionStorage.setItem("isAdmin", "true");
+
+              // Redirect to dashboard
+              window.location.href = "AdminDashboard.html";
+            } else {
+              // If not an admin, sign out the user
+              await auth.signOut();
+              errorMessage.textContent =
+                "Access denied. Admin privileges required.";
+            }
+          } catch (error) {
+            console.error("Login error:", error);
+            errorMessage.textContent = "Invalid email or password";
+          }
+        });
+    </script>
+  </body>
+</html>
