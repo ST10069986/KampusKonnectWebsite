@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log an Alumni Query</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+      form,
+      #studentNumberForm {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #0056b3;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      button:hover {
+        background-color: #003d82;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      .progress-container {
+        margin-top: 10px;
+        display: none;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+      }
+      .progress {
+        height: 100%;
+        background-color: #0056b3;
+        border-radius: 4px;
+        width: 0%;
+        transition: width 0.2s ease;
+      }
+      .error {
+        color: red;
+        margin-top: 5px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Log an Uncollected Certificate Query</h1>
+
+    <div id="studentNumberForm">
+      <label for="inputStudentId">Enter Your Student Number:</label>
+      <input type="text" id="inputStudentId" required />
+      <button id="loadStudentData">Load Student Data</button>
+    </div>
+
+    <form id="queryForm" style="display: none">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" readonly />
+
+      <label for="studentNumber">Student Number:</label>
+      <input type="text" id="studentId" name="studentId" readonly />
+
+      <label for="campus">Campus:</label>
+      <input type="text" id="campus" name="campus" readonly />
+
+      <label for="qualification">Qualification:</label>
+      <input type="text" id="qualification" name="qualification" readonly />
+
+      <label for="deliveryMode">Delivery Mode:</label>
+      <input type="text" id="deliveryMode" name="deliveryMode" readonly />
+
+      <label for="studyType">Study Type:</label>
+      <input type="text" id="studyType" name="studyType" readonly />
+
+      <label for="queryType">Query Type:</label>
+      <select id="queryType" name="queryType" required>
+        <option value="">Select Query Type</option>
+        <option value="Alumni Uncollected Certificates">
+          Alumni Uncollected Certificates
+        </option>
+      </select>
+
+      <label for="collectionMethod">Collection Method:</label>
+      <select id="collectionMethod" name="collectionMethod">
+        <option value="">Select a Collection Method</option>
+        <option value="Personal Collection">Personal Collection</option>
+        <option value="Courier Delivery">Courier Delivery</option>
+        <option value="International Shipping">International Shipping</option>
+      </select>
+
+      <label for="campusLocation">Campus Location:</label>
+      <select id="campusLocation" name="campusLocation">
+        <option value="">Select a Campus Location</option>
+        <option value="Pretoria Campus">Pretoria Campus</option>
+        <option value="Johannesburg Campus">Johannesburg Campus</option>
+        <option value="Cape Town Campus">Cape Town Campus</option>
+        <option value="Durban Campus">Durban Campus</option>
+      </select>
+
+      <label for="documentType">Document Type:</label>
+      <select id="documentType" name="documentType">
+        <option value="">Select a Document Type</option>
+        <option value="Original Certificate">Original Certificate</option>
+        <option value="Academic Record">Academic Record</option>
+        <option value="Complete Package">Complete Package</option>
+      </select>
+
+      <label for="contactNumber">Contact Number:</label>
+      <textarea
+        id="contactNumber"
+        name="contactNumber"
+        rows="1"
+        required
+      ></textarea>
+
+      <label for="preferredCollectionDate">Preferred Collection Date:</label>
+      <textarea
+        id="preferredCollectionDate"
+        name="preferredCollectionDate"
+        rows="1"
+        required
+      ></textarea>
+
+      <label for="deliveryAddress">Delivery Address:</label>
+      <textarea
+        id="deliveryAddress"
+        name="deliveryAddress"
+        rows="5"
+        required
+      ></textarea>
+
+      <label for="additionalDetails">Additional Details:</label>
+      <textarea
+        id="additionalDetails"
+        name="additionalDetails"
+        rows="4"
+        required
+      ></textarea>
+
+      <label for="attachedDocuments">Supporting Documentation:</label>
+      <input
+        type="file"
+        id="attachedDocuments"
+        name="attachedDocuments"
+        multiple
+      />
+      <div class="error" id="fileError"></div>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress"></div>
+        </div>
+      </div>
+
+      <input
+        type="hidden"
+        id="queryCategory"
+        name="queryCategory"
+        value="Alumni Student Queries"
+      />
+      <input type="hidden" id="queryName" name="queryName" />
+
+      <button type="submit" id="submitButton">Submit Query</button>
+    </form>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+      };
+
+      // Initialize Firebase
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.firestore();
+      const storage = firebase.storage();
+
+      // DOM Elements
+      const elements = {
+        loadStudentDataButton: document.getElementById("loadStudentData"),
+        studentNumberForm: document.getElementById("studentNumberForm"),
+        queryForm: document.getElementById("queryForm"),
+        inputStudentId: document.getElementById("inputStudentId"),
+        queryType: document.getElementById("queryType"),
+        fileInput: document.getElementById("attachedDocuments"),
+      };
+
+      // Firebase configuration remains the same
+
+      async function loadStudentData() {
+        const studentId = elements.inputStudentId.value.trim();
+
+        if (!studentId) {
+          alert("Please enter a student number");
+          return;
+        }
+
+        try {
+          elements.loadStudentDataButton.disabled = true;
+
+          // Fetch student registration data
+          const regSnapshot = await db
+            .collection("CampusRegistration")
+            .doc(studentId)
+            .get();
+
+          if (!regSnapshot.exists) {
+            throw new Error("Student registration not found");
+          }
+
+          const regData = regSnapshot.data();
+
+          // Populate form fields with registration data
+          document.getElementById(
+            "name"
+          ).value = `${regData.name} ${regData.surname}`;
+          document.getElementById("studentId").value = studentId;
+          document.getElementById("campus").value =
+            regData.campus || "Not specified";
+          document.getElementById("qualification").value =
+            regData.qualificationId || "Not specified";
+          document.getElementById("deliveryMode").value =
+            regData.deliveryMode || "Not specified";
+          document.getElementById("studyType").value =
+            regData.studyType || "Not specified";
+
+          // Show the query form
+          elements.studentNumberForm.style.display = "none";
+          elements.queryForm.style.display = "block";
+        } catch (error) {
+          console.error("Error:", error);
+          alert(error.message);
+        } finally {
+          elements.loadStudentDataButton.disabled = false;
+        }
+      }
+      // Update query name when query type changes
+      elements.queryType.addEventListener("change", function () {
+        document.getElementById("queryName").value = this.value;
+      });
+
+      // Handle form submission
+      document
+        .getElementById("queryForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          try {
+            const formData = new FormData(this);
+            const files = elements.fileInput.files;
+
+            // Create query document
+            const queryData = {
+              name: formData.get("name"),
+              studentId: formData.get("studentId"),
+              campus: formData.get("campus"),
+              qualification: formData.get("qualification"),
+              deliveryMode: formData.get("deliveryMode"),
+              studyType: formData.get("studyType"),
+              collectionMethod: formData.get("collectionMethod"),
+              campusLocation: formData.get("campusLocation"),
+              documentType: formData.get("documentType"),
+              preferredCollectionDate: formData.get("preferredCollectionDate"),
+              deliveryAddress: formData.get("deliveryAddress"),
+              queryType: formData.get("queryType"),
+              additionalDetails: formData.get("additionalDetails"),
+              queryCategory: "Alumni Student Queries",
+              queryName: formData.get(
+                "Alumni Uncollected Certificates Request"
+              ),
+              status: "Pending",
+              dateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
+              attachedDocuments: [],
+            };
+
+            // Add query to Firestore
+            const queryRef = await db.collection("AlumniQuery").add(queryData);
+
+            // Upload files if any
+            if (files.length > 0) {
+              const uploadPromises = Array.from(files).map((file) => {
+                const filePath = `queries/${queryRef.id}/${file.name}`;
+                return storage
+                  .ref(filePath)
+                  .put(file)
+                  .then((snapshot) => snapshot.ref.getDownloadURL());
+              });
+
+              const fileUrls = await Promise.all(uploadPromises);
+              await queryRef.update({ attachedDocuments: fileUrls });
+            }
+
+            alert("Query submitted successfully!");
+            this.reset();
+            elements.queryForm.style.display = "none";
+            elements.studentNumberForm.style.display = "block";
+          } catch (error) {
+            console.error("Error submitting query:", error);
+            alert("Error submitting query. Please try again.");
+          }
+        });
+
+      // Event listener for student number input
+      elements.loadStudentDataButton.addEventListener("click", loadStudentData);
+      elements.inputStudentId.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          loadStudentData();
+        }
+      });
+    </script>
+    <button onclick="window.location.href='StudentQueryDashboard.html'">
+      Back
+    </button>
+  </body>
+</html>
