@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to VC Assist</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+      button {
+        background-color: #0056b3;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      button:hover {
+        background-color: #003d82;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #backButton {
+        background-color: #6c757d;
+        margin-right: 10px;
+      }
+      #backButton:hover {
+        background-color: #5a6268;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: #1a237e;
+        text-align: center;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+      .subtitle {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+      }
+      .card-container {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      .card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+        width: calc(33.333% - 20px);
+        box-sizing: border-box;
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .card-icon {
+        font-size: 24px;
+        margin-right: 10px;
+      }
+      .card-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: white;
+      }
+      .card-content {
+        font-size: 0.9em;
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .card-button {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background-color 0.3s;
+      }
+      .card-button:hover {
+        background-color: #d32f2f;
+      }
+      .campus-queries {
+        background-color: #26a69a;
+      }
+      .iie-queries {
+        background-color: #29b6f6;
+      }
+      .alumni-queries {
+        background-color: #ab47bc;
+      }
+
+      @media (max-width: 768px) {
+        .card {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome to Kampus Konnect Assistance</h1>
+      <p class="subtitle">Select the category based on your query type</p>
+
+      <div class="card-container">
+        <div class="card">
+          <div class="card-header campus-queries">
+            <span class="card-icon">🏛️</span>
+            <span class="card-title">CAMPUS QUERIES</span>
+          </div>
+          <div class="card-content">
+            To raise a campus related query e.g. Academics, Assessments,
+            Timetables, Material, Finance or Admissions click to find out
+            more....
+          </div>
+          <button
+            class="card-button"
+            onclick="location.href='RaiseACampusQuery.html'"
+          >
+            FIND OUT MORE
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-header iie-queries">
+            <span class="card-icon">🔬</span>
+            <span class="card-title">IIE STUDENT HUB QUERIES</span>
+          </div>
+          <div class="card-content">
+            To raise a query on the Student Hub e.g. make an appeal, request a
+            remark, apply for a credit, replacement assessment application or a
+            reprint click to find out more. To follow up on your query logged
+            via the Student Hub – please contact us on STUDENT HUB TEL: +27 10
+            007 5100
+          </div>
+          <button class="card-button" onclick="location.href='IIEQueries.html'">
+            FIND OUT MORE
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-header alumni-queries">
+            <span class="card-icon">🎓</span>
+            <span class="card-title">ALUMNI/ FORMER STUDENT QUERIES</span>
+          </div>
+          <div class="card-content">
+            If you are a past student or an Alumnus and need assistance click to
+            find out more...
+          </div>
+          <button
+            class="card-button"
+            onclick="location.href='AlumniQueries.html'"
+          >
+            FIND OUT MORE
+          </button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <button
+        type="button"
+        id="backButton"
+        onclick="window.location.href='StudentDashboard.html'"
+      >
+        Back
+      </button>
+    </div>
+  </body>
+</html>

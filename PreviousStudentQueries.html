@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Previous Student Queries</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .section {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+      }
+
+      .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .query-card {
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .query-card.alumni {
+        border-left: 4px solid #9333ea;
+      }
+
+      .query-card.campus {
+        border-left: 4px solid #4299e1;
+      }
+
+      .query-card.student-hub {
+        border-left: 4px solid #f472b6;
+      }
+
+      .query-card .status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+
+      .query-card .status.pending {
+        background-color: #fef08a;
+        color: #713f12;
+      }
+
+      .query-card .status.processing {
+        background-color: #bfdbfe;
+        color: #1e3a8a;
+      }
+
+      .query-card .status.solved {
+        background-color: #dcfce7;
+        color: #065f46;
+      }
+
+      .back-button {
+        display: block;
+        margin-top: 20px;
+        text-decoration: none;
+        color: #4299e1;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Previous Student Queries</h1>
+
+      <div
+        id="login-form"
+        class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col"
+      >
+        <h2 class="text-2xl font-bold mb-4">Enter Your Student Credentials</h2>
+        <div class="mb-4">
+          <label class="block text-gray-700 font-bold mb-2" for="student-id">
+            Student ID:
+          </label>
+          <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="student-id"
+            type="text"
+            placeholder="Enter your student ID"
+            required
+          />
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 font-bold mb-2" for="password">
+            Password:
+          </label>
+          <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            required
+          />
+        </div>
+        <div class="flex items-center justify-between">
+          <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="button"
+            id="login-button"
+          >
+            View Queries
+          </button>
+        </div>
+      </div>
+
+      <div id="all-queries" style="display: none">
+        <div class="section">
+          <div class="section-title">Pending</div>
+          <div id="pending-queries"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Processing</div>
+          <div id="processing-queries"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Solved</div>
+          <div id="solved-queries"></div>
+        </div>
+      </div>
+
+      <a href="StudentDashboard.html" class="back-button">Back</a>
+    </div>
+
+    <!-- Include Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // Fetch and sort queries for the specific student
+      const fetchAndSortQueries = async (studentId, password) => {
+        try {
+          // Check if the student is valid
+          const studentSnapshot = await db
+            .collection("students")
+            .where("studentId", "==", studentId)
+            .where("password", "==", password)
+            .get();
+          if (studentSnapshot.empty) {
+            alert("Invalid student ID or password.");
+            return;
+          }
+
+          const [
+            alumniQuerySnapshot,
+            studentHubQuerySnapshot,
+            campusQuerySnapshot,
+          ] = await Promise.all([
+            db
+              .collection("AlumniQuery")
+              .where("studentId", "==", studentId)
+              .get(),
+            db
+              .collection("StudentHubQuery")
+              .where("studentId", "==", studentId)
+              .get(),
+            db
+              .collection("CampusQuery")
+              .where("studentId", "==", studentId)
+              .get(),
+          ]);
+
+          const queries = [
+            ...alumniQuerySnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+              dateSubmitted: doc.data().dateSubmitted,
+              queryCategory: "Alumni Student Queries",
+            })),
+            ...studentHubQuerySnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+              dateSubmitted: doc.data().dateSubmitted,
+              queryCategory: "Student Hub Queries",
+            })),
+            ...campusQuerySnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+              dateSubmitted: doc.data().dateSubmitted,
+              queryCategory: "Campus Queries",
+            })),
+          ];
+
+          const pendingQueries = [];
+          const processingQueries = [];
+          const solvedQueries = [];
+
+          queries.forEach((query) => {
+            const queryCard = createQueryCard(query);
+            switch (query.status) {
+              case "Pending":
+                pendingQueries.push(queryCard);
+                break;
+              case "Processing":
+                processingQueries.push(queryCard);
+                break;
+              case "Solved":
+                solvedQueries.push(queryCard);
+                break;
+            }
+          });
+
+          const pendingQueriesDiv = document.getElementById("pending-queries");
+          const processingQueriesDiv =
+            document.getElementById("processing-queries");
+          const solvedQueriesDiv = document.getElementById("solved-queries");
+
+          pendingQueriesDiv.innerHTML = pendingQueries.join("");
+          processingQueriesDiv.innerHTML = processingQueries.join("");
+          solvedQueriesDiv.innerHTML = solvedQueries.join("");
+
+          // Show the queries section and hide the login form
+          document.getElementById("login-form").style.display = "none";
+          document.getElementById("all-queries").style.display = "block";
+        } catch (error) {
+          console.error("Error fetching queries:", error);
+        }
+      };
+
+      const createQueryCard = (query) => {
+        let queryCardClass = "query-card";
+        if (query.queryCategory === "Alumni Student Queries") {
+          queryCardClass += " alumni";
+        } else if (query.queryCategory === "Campus Queries") {
+          queryCardClass += " campus";
+        } else if (query.queryCategory === "Student Hub Queries") {
+          queryCardClass += " student-hub";
+        }
+
+        let statusClass = "status";
+        switch (query.status) {
+          case "Pending":
+            statusClass += " pending";
+            break;
+          case "Processing":
+            statusClass += " processing";
+            break;
+          case "Solved":
+            statusClass += " solved";
+            break;
+        }
+
+        // Convert the Firestore Timestamp to a standard date and time format
+        const dateSubmitted = query.dateSubmitted.toDate().toLocaleString();
+
+        return `
+    <div class="${queryCardClass}">
+      <div>
+        <h3>${query.queryName}</h3>
+        <p>Query Type: ${query.queryType}</p>
+        <p>Query Category: ${query.queryCategory}</p>
+        <p>Date Submitted: ${dateSubmitted}</p>
+        <p>Description: ${query.description}</p>
+        <p>Additional Details: ${query.additionalDetails || "None provided"}</p>
+      </div>
+      <div class="${statusClass}">${query.status}</div>
+    </div>
+  `;
+      };
+
+      // Add event listener to the login button
+      document.getElementById("login-button").addEventListener("click", () => {
+        const studentId = document.getElementById("student-id").value;
+        const password = document.getElementById("password").value;
+        fetchAndSortQueries(studentId, password);
+      });
+    </script>
+  </body>
+</html>
