@@ -74,7 +74,7 @@
     </style>
   </head>
   <body>
-    <h1>Log a Lecturer Query</h1>
+    <h1>Log a Finance Query</h1>
 
     <div id="studentNumberForm">
       <label for="inputStudentId">Enter Your Student Number:</label>
@@ -101,29 +101,68 @@
       <label for="studyType">Study Type:</label>
       <input type="text" id="studyType" name="studyType" readonly />
 
-      <label for="module">Module:</label>
-      <select id="module" name="module" required>
-        <option value="">Select a module</option>
-      </select>
-
       <label for="queryType">Query Type:</label>
       <select id="queryType" name="queryType" required>
         <option value="">Select Query Type</option>
-        <option value="Lecturer Query">Lecturer Query</option>
-        <option value="Assessment Query">Assessment Query</option>
-        <option value="Module Content Query">Module Content Query</option>
-        <option value="Consultation Request">Consultation Request</option>
-        <option value="Class Schedule Query">Class Schedule Query</option>
+        <option value="Missing Payment">Missing Payment</option>
+        <option value="Statement Query">Statement Query</option>
+        <option value="Refund Query">Refund Query</option>
+        <option value="Payment Plan Request">Payment Plan Request</option>
+        <option value="NSFAS Query">NSFAS Query</option>
+        <option value="Bursary Query">Bursary Query</option>
+        <option value="Study Loan Query">Study Loan Query</option>
+        <option value="Fee Structure Query">Fee Structure Query</option>
+        <option value="General Finance Query">General Finance Query</option>
       </select>
 
-      <label for="assessmentType">Assessment Type:</label>
-      <select id="assessmentType" name="assessmentType">
-        <option value="">Select Assessment Type</option>
-        <option value="Test">Test</option>
-        <option value="Assignment">Assignment</option>
-        <option value="Project">Project</option>
-        <option value="Exam">Exam</option>
+      <label for="paymentType">Payment Type:</label>
+      <select id="paymentType" name="paymentType">
+        <option value="">Select a Payment Type</option>
+        <option value="EFT Payment">EFT Payment</option>
+        <option value="Credit Card Payment">Credit Card Payment</option>
+        <option value="Cash Deposit">Cash Deposit</option>
+        <option value="NSFAS">NSFAS</option>
+        <option value="Bursary">Bursary</option>
+        <option value="Student Loan">Student Loan</option>
+        <option value="Corporate Sponsor">Corporate Sponsor</option>
       </select>
+
+      <label for="statementPeriod">Statement Period:</label>
+      <select id="statementPeriod" name="statementPeriod">
+        <option value="">Select a Statement Period</option>
+        <option value="January 2024">January 2024</option>
+        <option value="February 2024">February 2024</option>
+        <option value="March 2024">March 2024</option>
+        <option value="April 2024">April 2024</option>
+        <option value="May 2024">May 2024</option>
+        <option value="June 2024">June 2024</option>
+        <option value="July 2024">July 2024</option>
+        <option value="August 2024">August 2024</option>
+        <option value="September 2024">September 2024</option>
+        <option value="October 2024">October 2024</option>
+        <option value="November 2024">November 2024</option>
+        <option value="December 2024">December 2024</option>
+        <option value="Full Year of 2024">Full Year of 2024</option>
+      </select>
+
+      <label for="feeCategory">Fee Category:</label>
+      <select id="feeCategory" name="feeCategory">
+        <option value="">Select a Fee Category</option>
+        <option value="Registration Fee">Registration Fee</option>
+        <option value="Tuition Fee">Tuition Fee</option>
+        <option value="Exam Fee">Exam Fee</option>
+        <option value="Study Material Fee">Study Material Fee</option>
+        <option value="Additional Charges">Additional Charges</option>
+        <option value="Late Payment Penalties">Late Payment Penalties</option>
+      </select>
+
+      <label for="paymentReference">Payment Reference:</label>
+      <textarea
+        id="paymentReference"
+        name="paymentReference"
+        rows="2"
+        required
+      ></textarea>
 
       <label for="description">Description:</label>
       <textarea
@@ -230,36 +269,6 @@
           document.getElementById("studyType").value =
             regData.studyType || "Not specified";
 
-          // Now fetch student modules
-          const moduleSelect = document.getElementById("module");
-          moduleSelect.innerHTML = '<option value="">Select a module</option>';
-
-          const modulesSnapshot = await db
-            .collection("StudentModules")
-            .doc(studentId)
-            .get();
-
-          if (modulesSnapshot.exists) {
-            const studentData = modulesSnapshot.data();
-            if (
-              studentData.registrations &&
-              studentData.registrations[0] &&
-              studentData.registrations[0].modules
-            ) {
-              const modules = studentData.registrations[0].modules;
-
-              // Add each module to the select dropdown
-              Object.values(modules).forEach((module) => {
-                if (module.moduleCode && module.moduleName) {
-                  const option = document.createElement("option");
-                  option.value = module.moduleCode;
-                  option.textContent = `${module.moduleCode} - ${module.moduleName}`;
-                  moduleSelect.appendChild(option);
-                }
-              });
-            }
-          }
-
           // Show the query form
           elements.studentNumberForm.style.display = "none";
           elements.queryForm.style.display = "block";
@@ -293,12 +302,14 @@
               qualification: formData.get("qualification"),
               deliveryMode: formData.get("deliveryMode"),
               studyType: formData.get("studyType"),
-              module: formData.get("module"),
               queryType: formData.get("queryType"),
-              assessmentType: formData.get("assessmentType"),
+              paymentType: formData.get("paymentType"),
+              statementPeriod: formData.get("statementPeriod"),
+              feeCategory: formData.get("feeCategory"),
+              paymentReference: formData.get("paymentReference"),
               description: formData.get("description"),
               queryCategory: "Campus Queries",
-              queryName: formData.get("Lecturer Query"),
+              queryName: formData.get("Finance Query"),
               status: "Pending",
               dateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
               attachedDocuments: [],
