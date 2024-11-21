@@ -553,6 +553,9 @@
           </div>
       
           <script>
+// Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+
             // Firebase configuration
             const firebaseConfig = {
               apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
@@ -564,9 +567,6 @@
               measurementId: "G-4DV0GBX6YM",
             };
       
-            // Initialize Firebase
-            firebase.initializeApp(firebaseConfig);
-            
             // Check authentication state immediately when page loads
             document.addEventListener('DOMContentLoaded', function() {
               firebase.auth().onAuthStateChanged((user) => {

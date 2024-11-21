@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Solve Queries</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+    background-color: #ffffff;
+    color: #1a1f2e;
+  }
+
+  .query-card {
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    background-color: #f8fafc;
+  }
+
+  .query-card:hover {
+    transform: translateX(5px);
+  }
+
+  .query-card.campusquery {
+    border-left-color: #06b6d4;
+  }
+
+  .query-card.alumniquery {
+    border-left-color: #9333ea;
+  }
+
+  .query-card.studenthubquery {
+    border-left-color: #ec4899;
+  }
+
+  .active-tab {
+    color: #38bdf8;
+    border-bottom: 2px solid #38bdf8;
+  }
+
+  .modal {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+    </style>
+  </head>
+  <body>
+    <div class="container mx-auto max-w-3xl p-4">
+      <header class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Solve Queries</h1>
+        <button
+          onclick="toggleFilter()"
+          class="p-2 rounded-full hover:bg-gray-700"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+            />
+          </svg>
+        </button>
+      </header>
+
+      <div class="flex space-x-8 mb-6">
+        <button onclick="switchTab('Pending')" class="active-tab pb-2 px-2">
+          PENDING
+        </button>
+        <button onclick="switchTab('Processing')" class="pb-2 px-2">
+          PROCESSING
+        </button>
+      </div>
+
+      <div id="queryList" class="space-y-4"></div>
+
+      <!-- Filter Modal -->
+      <div id="filterModal" class="modal hidden fixed inset-0 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-80 shadow-lg">
+          <h2 class="text-xl font-bold mb-4 text-gray-900">Filter</h2>
+      
+          <div class="mb-6">
+            <h3 class="font-medium mb-3 text-gray-700">Category</h3>
+            <div class="space-y-3">
+              <label class="flex items-center text-gray-600 hover:text-gray-900">
+                <input type="radio" name="category" value="all" checked class="mr-2 text-blue-500">
+                All Categories
+              </label>
+              <label class="flex items-center text-gray-600 hover:text-gray-900">
+                <input type="radio" name="category" value="campus" class="mr-2 text-cyan-500">
+                Campus Queries
+              </label>
+              <label class="flex items-center text-gray-600 hover:text-gray-900">
+                <input type="radio" name="category" value="student-hub" class="mr-2 text-pink-500">
+                Student Hub Queries
+              </label>
+              <label class="flex items-center text-gray-600 hover:text-gray-900">
+                <input type="radio" name="category" value="alumni" class="mr-2 text-purple-500">
+                Alumni Student Queries
+              </label>
+            </div>
+          </div>
+      
+          <div class="mb-6">
+            <h3 class="font-medium mb-3 text-gray-700">Sort By</h3>
+            <div class="space-y-3">
+              <label class="flex items-center text-gray-600 hover:text-gray-900">
+                <input type="radio" name="sort" value="newest" checked class="mr-2 text-blue-500">
+                Newest First
+              </label>
+              <label class="flex items-center text-gray-600 hover:text-gray-900">
+                <input type="radio" name="sort" value="oldest" class="mr-2 text-blue-500">
+                Oldest First
+              </label>
+            </div>
+          </div>
+      
+          <div class="flex justify-end space-x-3">
+            <button onclick="resetFilters()" class="px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded">
+              Reset
+            </button>
+            <button onclick="applyFilters()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="queryDetailsModal" class="modal hidden fixed inset-0 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg">
+          <div id="queryDetails" class="space-y-4"></div>
+          <div class="mt-6" id="actionButtons">
+            <!-- Button container updated dynamically -->
+          </div>
+        </div>
+      </div>
+      <!-- Query Details Modal -->
+      
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+        doc,
+        updateDoc,
+        orderBy,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+        measurementId: "G-4DV0GBX6YM",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      let currentTab = "pending"; // Changed to lowercase
+      let currentFilter = "all";
+      let currentSort = "newest";
+      let selectedQuery = null;
+
+      window.switchTab = function (tab) {
+        document.querySelector(".active-tab").classList.remove("active-tab");
+        event.target.classList.add("active-tab");
+        currentTab = tab.toLowerCase(); // Convert to lowercase
+        fetchQueries();
+      };
+
+      window.toggleFilter = function () {
+        document.getElementById("filterModal").classList.toggle("hidden");
+      };
+
+      window.resetFilters = function () {
+        document.querySelector('input[value="all"]').checked = true;
+        document.querySelector('input[value="newest"]').checked = true;
+        currentFilter = "all";
+        currentSort = "newest";
+        fetchQueries();
+        toggleFilter();
+      };
+
+      window.applyFilters = function () {
+        currentFilter = document.querySelector(
+          'input[name="category"]:checked'
+        ).value;
+        currentSort = document.querySelector(
+          'input[name="sort"]:checked'
+        ).value;
+        fetchQueries();
+        toggleFilter();
+      };
+
+      async function fetchQueries() {
+ const collections = ["CampusQuery", "StudentHubQuery", "AlumniQuery"];
+ const queryList = document.getElementById("queryList");
+ queryList.innerHTML = "";
+
+ try {
+   for (const collectionName of collections) {
+     if (currentFilter !== "all" && !collectionName.toLowerCase().includes(currentFilter)) {
+       continue;
+     }
+
+     // Build query conditions
+     let statusCondition;
+     if (currentTab === "pending") {
+       statusCondition = where("status", "in", ["Pending", "", null]); // Include empty or missing status
+     } else {
+       statusCondition = where("status", "==", "Processing");
+     }
+
+     const q = query(
+       collection(db, collectionName),
+       statusCondition,
+       orderBy("dateSubmitted", currentSort === "newest" ? "desc" : "asc")
+     );
+
+     const snapshot = await getDocs(q);
+     console.log(`Found ${snapshot.size} docs in ${collectionName}`);
+
+     snapshot.forEach((doc) => {
+       const data = {
+         ...doc.data(),
+         id: doc.id,
+         collection: collectionName,
+       };
+       console.log("Document data:", data);
+       const card = createQueryCard(data, collectionName);
+       queryList.appendChild(card);
+     });
+   }
+ } catch (error) {
+   console.error("Error fetching queries:", error);
+   queryList.innerHTML = `<div class="text-red-500">Error: ${error.message}</div>`;
+ }
+}
+
+      function createQueryCard(data, collectionType) {
+  const div = document.createElement("div");
+  div.className = `query-card p-4 rounded-lg shadow-md ${collectionType.toLowerCase()}`;
+  
+  div.innerHTML = `
+    <h3 class="text-lg font-semibold text-gray-900">${data.queryName || data.queryType}</h3>
+    <p class="text-sm text-gray-600">${data.queryCategory}</p>
+    <p class="text-xs text-gray-500 mt-2">Submitted: ${new Date(data.dateSubmitted).toLocaleString()}</p>
+  `;
+
+  div.onclick = () => showQueryDetails(data);
+  return div;
+}
+
+      window.showQueryDetails = function(query) {
+  selectedQuery = query;
+  const modal = document.getElementById("queryDetailsModal");
+  const details = document.getElementById("queryDetails");
+  const actionButtons = document.getElementById("actionButtons");
+
+  details.innerHTML = `
+    <h2 class="text-xl font-bold text-gray-900">${query.queryName || query.queryType}</h2>
+    <p class="text-gray-600">${query.queryCategory}</p>
+    <div class="mt-4">
+      <h3 class="font-medium mb-2 text-gray-900">Query Description</h3>
+      <p class="text-gray-700">${query.description}</p>
+    </div>
+    <div class="mt-4 grid grid-cols-2 gap-4">
+      <div>
+        <h3 class="font-medium mb-1 text-gray-900">Student Name</h3>
+        <p class="text-gray-700">${query.name}</p>
+      </div>
+      <div>
+        <h3 class="font-medium mb-1 text-gray-900">Student ID</h3>
+        <p class="text-gray-700">${query.studentId}</p>
+      </div>
+    </div>
+  `;
+
+  if (query.status === "Processing") {
+    actionButtons.innerHTML = `
+      <textarea id="adminFeedback" class="w-full p-3 rounded border border-gray-300" rows="4" 
+        placeholder="Enter feedback for the student..."></textarea>
+      <button onclick="markAsSolved()" class="w-full mt-4 py-3 bg-green-500 text-white rounded hover:bg-green-600">
+        MARK AS SOLVED
+      </button>
+    `;
+  } else {
+    actionButtons.innerHTML = `
+      <button onclick="beginProcessing()" class="w-full py-3 bg-[#38bdf8] text-white rounded hover:bg-blue-500">
+        BEGIN PROCESSING
+      </button>
+    `;
+  }
+
+  modal.classList.remove("hidden");
+};
+
+window.beginProcessing = async function() {
+  if (!selectedQuery) return;
+
+  try {
+    const queryRef = doc(db, selectedQuery.collection, selectedQuery.id);
+    await updateDoc(queryRef, {
+      status: "Processing"
+    });
+
+    document.getElementById("queryDetailsModal").classList.add("hidden");
+    fetchQueries();
+  } catch (error) {
+    console.error("Error beginning processing:", error);
+    alert("Error starting processing: " + error.message);
+  }
+};
+
+      window.processQuery = async function () {
+        if (!selectedQuery) return;
+
+        try {
+          const queryRef = doc(db, selectedQuery.collection, selectedQuery.id);
+          await updateDoc(queryRef, {
+            status: "Processing",
+            adminFeedback: document.getElementById("adminFeedback").value,
+          });
+
+          document.getElementById("queryDetailsModal").classList.add("hidden");
+          fetchQueries();
+        } catch (error) {
+          console.error("Error processing query:", error);
+        }
+      };
+
+      // Close modals when clicking outside
+      window.onclick = function (event) {
+        if (event.target.classList.contains("modal")) {
+          event.target.classList.add("hidden");
+        }
+      };
+
+      window.markAsSolved = async function () {
+  if (!selectedQuery || !document.getElementById("adminFeedback").value.trim()) {
+    alert("Please enter feedback before marking as solved");
+    return;
+  }
+
+  try {
+    // Add to SolvedQueries collection
+    const solvedData = {
+      ...selectedQuery,
+      adminFeedback: document.getElementById("adminFeedback").value.trim(),
+      solvedAt: new Date().toISOString(),
+      status: "Solved"
+    };
+    delete solvedData.id; // Remove the document ID before adding to new collection
+    
+    await addDoc(collection(db, "SolvedQueries"), solvedData);
+
+    // Update original query status
+    const queryRef = doc(db, selectedQuery.collection, selectedQuery.id);
+    await updateDoc(queryRef, { 
+      status: "Solved",
+      adminFeedback: document.getElementById("adminFeedback").value.trim() 
+    });
+
+    document.getElementById("queryDetailsModal").classList.add("hidden");
+    document.getElementById("adminFeedback").value = "";
+    fetchQueries();
+  } catch (error) {
+    console.error("Error marking query as solved:", error);
+    alert("Error marking query as solved: " + error.message);
+  }
+};
+
+      // Initial fetch
+      fetchQueries();
+    </script>
+  </body>
+</html>
