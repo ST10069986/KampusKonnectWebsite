@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Query Dashboard</title>
+    <title>Admin Dashboard - Kampus Konnect</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       * {
@@ -43,6 +43,38 @@
         padding: 1.5rem;
         margin-bottom: 1.5rem;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .dashboard-card1 {
+        background-color: #cbdad2;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .dashboard-card2 {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgb(135, 206, 235);
+      }
+
+      .dashboard-card3 {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgb(147, 112, 219);
+      }
+
+      .dashboard-card4 {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgb(255, 105, 180);
       }
 
       .card-title {
@@ -141,7 +173,7 @@
         </div>
       </div>
 
-      <div class="dashboard-card">
+      <div class="dashboard-card1">
         <h2 class="card-title">Global Query Completion</h2>
         <div class="progress-section">
           <div class="progress-container">
@@ -166,11 +198,118 @@
         </div>
       </div>
 
+      <div class="dashboard-card2">
+        <h2 class="card-title">Campus Queries Progress</h2>
+        <div class="progress-section">
+          <div class="progress-container">
+            <div class="progress-bar solved" id="campusSolvedProgress"></div>
+            <div
+              class="progress-bar processing"
+              id="campusProcessingProgress"
+            ></div>
+            <div class="progress-bar pending" id="campusPendingProgress"></div>
+          </div>
+          <div class="status-labels">
+            <div class="status-label">
+              <div class="status-dot solved"></div>
+              <span id="campusSolvedText">Solved: 0%</span>
+            </div>
+            <div class="status-label">
+              <div class="status-dot processing"></div>
+              <span id="campusProcessingText">Processing: 0%</span>
+            </div>
+            <div class="status-label">
+              <div class="status-dot pending"></div>
+              <span id="campusPendingText">Pending: 0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-card4">
+        <h2 class="card-title">Student Hub Queries Progress</h2>
+        <div class="progress-section">
+          <div class="progress-container">
+            <div class="progress-bar solved" id="hubSolvedProgress"></div>
+            <div
+              class="progress-bar processing"
+              id="hubProcessingProgress"
+            ></div>
+            <div class="progress-bar pending" id="hubPendingProgress"></div>
+          </div>
+          <div class="status-labels">
+            <div class="status-label">
+              <div class="status-dot solved"></div>
+              <span id="hubSolvedText">Solved: 0%</span>
+            </div>
+            <div class="status-label">
+              <div class="status-dot processing"></div>
+              <span id="hubProcessingText">Processing: 0%</span>
+            </div>
+            <div class="status-label">
+              <div class="status-dot pending"></div>
+              <span id="hubPendingText">Pending: 0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-card3">
+        <h2 class="card-title">Alumni Queries Progress</h2>
+        <div class="progress-section">
+          <div class="progress-container">
+            <div class="progress-bar solved" id="alumniSolvedProgress"></div>
+            <div
+              class="progress-bar processing"
+              id="alumniProcessingProgress"
+            ></div>
+            <div class="progress-bar pending" id="alumniPendingProgress"></div>
+          </div>
+          <div class="status-labels">
+            <div class="status-label">
+              <div class="status-dot solved"></div>
+              <span id="alumniSolvedText">Solved: 0%</span>
+            </div>
+            <div class="status-label">
+              <div class="status-dot processing"></div>
+              <span id="alumniProcessingText">Processing: 0%</span>
+            </div>
+            <div class="status-label">
+              <div class="status-dot pending"></div>
+              <span id="alumniPendingText">Pending: 0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <button
         class="solve-btn"
         onclick="window.location.href='AdminSolveQuery.html'"
       >
         SOLVE QUERIES
+      </button>
+    </div>
+
+    <div class="mb-4">
+      <button
+        onclick="window.location.href='AdminDashboard.html'"
+        class="flex items-center p-2 ml-4 text-gray-600 hover:text-gray-900"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 mr-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back
       </button>
     </div>
 
@@ -225,36 +364,40 @@
       });
 
       // Improved function to update progress bars
-      function updateProgressBars(solved, processing, pending, total) {
+      function updateCategoryProgress(
+        prefix,
+        solved,
+        processing,
+        pending,
+        total
+      ) {
         if (total === 0) return;
 
         const solvedPercent = (solved / total) * 100;
         const processingPercent = (processing / total) * 100;
         const pendingPercent = (pending / total) * 100;
 
-        // Update the width of progress bars
-        const solvedBar = document.getElementById("solvedProgress");
-        const processingBar = document.getElementById("processingProgress");
-        const pendingBar = document.getElementById("pendingProgress");
-
-        // Set the widths sequentially
-        solvedBar.style.width = `${solvedPercent}%`;
-        processingBar.style.width = `${processingPercent}%`;
-        pendingBar.style.width = `${pendingPercent}%`;
-
-        // Update the text labels
         document.getElementById(
-          "solvedText"
+          `${prefix}SolvedProgress`
+        ).style.width = `${solvedPercent}%`;
+        document.getElementById(
+          `${prefix}ProcessingProgress`
+        ).style.width = `${processingPercent}%`;
+        document.getElementById(
+          `${prefix}PendingProgress`
+        ).style.width = `${pendingPercent}%`;
+
+        document.getElementById(
+          `${prefix}SolvedText`
         ).textContent = `Solved: ${solvedPercent.toFixed(1)}%`;
         document.getElementById(
-          "processingText"
+          `${prefix}ProcessingText`
         ).textContent = `Processing: ${processingPercent.toFixed(1)}%`;
         document.getElementById(
-          "pendingText"
+          `${prefix}PendingText`
         ).textContent = `Pending: ${pendingPercent.toFixed(1)}%`;
       }
 
-      // Function to fetch and process data
       async function fetchData() {
         try {
           const queryCollections = [
@@ -266,39 +409,113 @@
           const querySnapshots = await Promise.all(
             queryCollections.map((col) => getDocs(col))
           );
-
           const counts = querySnapshots.map((snapshot) => snapshot.size);
 
           // Update donut chart
           queryChart.data.datasets[0].data = counts;
           queryChart.update();
 
-          // Count statuses
-          let solved = 0,
-            processing = 0,
-            pending = 0;
-
-          querySnapshots.forEach((snapshot) => {
+          // Process each collection separately
+          const collectionsData = querySnapshots.map((snapshot) => {
+            let solved = 0,
+              processing = 0,
+              pending = 0;
             snapshot.forEach((doc) => {
               const status = doc.data().status?.toLowerCase() || "pending";
               if (status === "solved") solved++;
               else if (status === "processing") processing++;
               else pending++;
             });
+            return {
+              solved,
+              processing,
+              pending,
+              total: solved + processing + pending,
+            };
           });
 
-          const total = solved + processing + pending;
-          updateProgressBars(solved, processing, pending, total);
+          // Update individual progress bars
+          updateCategoryProgress(
+            "campus",
+            collectionsData[0].solved,
+            collectionsData[0].processing,
+            collectionsData[0].pending,
+            collectionsData[0].total
+          );
+
+          updateCategoryProgress(
+            "hub",
+            collectionsData[2].solved,
+            collectionsData[2].processing,
+            collectionsData[2].pending,
+            collectionsData[2].total
+          );
+
+          updateCategoryProgress(
+            "alumni",
+            collectionsData[1].solved,
+            collectionsData[1].processing,
+            collectionsData[1].pending,
+            collectionsData[1].total
+          );
+
+          // Update global progress
+          const totalSolved = collectionsData.reduce(
+            (sum, data) => sum + data.solved,
+            0
+          );
+          const totalProcessing = collectionsData.reduce(
+            (sum, data) => sum + data.processing,
+            0
+          );
+          const totalPending = collectionsData.reduce(
+            (sum, data) => sum + data.pending,
+            0
+          );
+          const grandTotal = totalSolved + totalProcessing + totalPending;
+
+          updateProgressBars(
+            totalSolved,
+            totalProcessing,
+            totalPending,
+            grandTotal
+          );
         } catch (error) {
           console.error("Error fetching data:", error);
         }
       }
 
-      // Initial fetch
-      fetchData();
+      // Add this function
+      function updateProgressBars(solved, processing, pending, total) {
+        if (total === 0) return;
 
-      // Refresh data every 5 minutes
-      setInterval(fetchData, 300000);
+        const solvedPercent = (solved / total) * 100;
+        const processingPercent = (processing / total) * 100;
+        const pendingPercent = (pending / total) * 100;
+
+        document.getElementById(
+          "solvedProgress"
+        ).style.width = `${solvedPercent}%`;
+        document.getElementById(
+          "processingProgress"
+        ).style.width = `${processingPercent}%`;
+        document.getElementById(
+          "pendingProgress"
+        ).style.width = `${pendingPercent}%`;
+
+        document.getElementById(
+          "solvedText"
+        ).textContent = `Solved: ${solvedPercent.toFixed(1)}%`;
+        document.getElementById(
+          "processingText"
+        ).textContent = `Processing: ${processingPercent.toFixed(1)}%`;
+        document.getElementById(
+          "pendingText"
+        ).textContent = `Pending: ${pendingPercent.toFixed(1)}%`;
+      }
+
+      // Add at the end of script
+      fetchData();
     </script>
   </body>
 </html>
