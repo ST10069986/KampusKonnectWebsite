@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard</title>
+    <title>UQMS - Student Dashboard</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
@@ -42,12 +42,14 @@
         text-align: center;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .menu-items {
         display: flex;
         flex-direction: column;
         flex-grow: 1;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .menu-item {
@@ -59,6 +61,7 @@
         border-radius: 4px;
         margin-bottom: 0.5rem;
         cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .menu-item:hover {
@@ -120,7 +123,7 @@
         display: flex;
         justify-content: space-between;
         padding: 1rem;
-        background-color: #85f442; 
+        background-color: #85f442;
         border-radius: 4px;
       }
 
@@ -553,8 +556,9 @@
           </div>
       
           <script>
+
 // Initialize Firebase
-            firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 
             // Firebase configuration
             const firebaseConfig = {
@@ -567,6 +571,8 @@
               measurementId: "G-4DV0GBX6YM",
             };
       
+            
+            
             // Check authentication state immediately when page loads
             document.addEventListener('DOMContentLoaded', function() {
               firebase.auth().onAuthStateChanged((user) => {
