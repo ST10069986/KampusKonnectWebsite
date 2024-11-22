@@ -4,10 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UQMS - Student Dashboard</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
     <!-- Font Awesome for icons -->
     <link
       rel="stylesheet"
@@ -42,14 +38,12 @@
         text-align: center;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         margin-bottom: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .menu-items {
         display: flex;
         flex-direction: column;
         flex-grow: 1;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .menu-item {
@@ -61,7 +55,6 @@
         border-radius: 4px;
         margin-bottom: 0.5rem;
         cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .menu-item:hover {
@@ -123,7 +116,7 @@
         display: flex;
         justify-content: space-between;
         padding: 1rem;
-        background-color: #85f442;
+        background-color: #f8f9fa;
         border-radius: 4px;
       }
 
@@ -163,7 +156,7 @@
       }
 
       .submit-btn {
-        background-color: #85f442;
+        background-color: #4285f4;
         color: white;
         border: none;
         padding: 0.8rem 1.5rem;
@@ -173,7 +166,7 @@
       }
 
       .submit-btn:hover {
-        background-color: #4285f4;
+        background-color: #3367d6;
       }
 
       /* Queries List */
@@ -245,7 +238,7 @@
 
       .sidebar {
         width: 250px;
-        background-color: #85f442;
+        background-color: #4285f4;
         color: white;
         padding: 1rem;
         display: flex;
@@ -353,7 +346,7 @@
       }
 
       .save-button {
-        background-color: #85f442;
+        background-color: #4285f4;
         color: white;
         border: none;
         padding: 1rem 2rem;
@@ -368,7 +361,7 @@
       }
 
       .save-button:hover {
-        background-color: #4285f4;
+        background-color: #3367d6;
       }
 
       .alert {
@@ -414,7 +407,7 @@
           data-section="raise-query"
         >
           <i class="fas fa-question-circle"></i>
-          Dashboard
+          Query Dashboard
         </a>
         <a
           class="menu-item"
@@ -422,11 +415,11 @@
           data-section="view-queries"
         >
           <i class="fas fa-list"></i>
-          Solve a Query
+          Solve A Query
         </a>
         <a class="menu-item" href="StudentModulesDashboard.html">
           <i class="fas fa-book"></i>
-          All Queries
+          Modules
         </a>
 
         <a class="menu-item logout" href="index.html">
@@ -463,10 +456,7 @@
                       />
                     </svg>
                   </div>
-                  <button
-                    class="camera-button"
-                    onclick="document.getElementById('photoInput').click()"
-                  >
+                  <button class="camera-button" onclick="document.getElementById('photoInput').click()">
                     <svg
                       width="20"
                       height="20"
@@ -485,7 +475,7 @@
                 </div>
               </div>
       
-              <form id="profileForm">
+              <form id="profileForm" onsubmit="handleFormSubmit(event)">
                 <div class="form-grid">
                   <div class="form-group">
                     <label for="firstName">First Name</label>
@@ -552,159 +542,141 @@
               </form>
       
               <div id="alertMessage" class="alert"></div>
+
             </div>
           </div>
       
-          <script>
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-
+          <script type="module">
+            // Import Firebase modules
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+            import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+            import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+            import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
             // Firebase configuration
             const firebaseConfig = {
-              apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
-              authDomain: "kampus-konnect-38932.firebaseapp.com",
-              projectId: "kampus-konnect-38932",
-              storageBucket: "kampus-konnect-38932.appspot.com",
-              messagingSenderId: "163800800971",
-              appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
-              measurementId: "G-4DV0GBX6YM",
+                apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+                authDomain: "kampus-konnect-38932.firebaseapp.com",
+                projectId: "kampus-konnect-38932",
+                storageBucket: "kampus-konnect-38932.appspot.com",
+                messagingSenderId: "163800800971",
+                appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e"
             };
-      
-            
-            
-            // Check authentication state immediately when page loads
-            document.addEventListener('DOMContentLoaded', function() {
-              firebase.auth().onAuthStateChanged((user) => {
+        
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const storage = getStorage(app);
+        
+            // Make functions available globally
+            window.handlePhotoUpload = async (event) => {
+                const file = event.target.files[0];
+                if (!file || !auth.currentUser) return;
+        
+                try {
+                    const storageRef = ref(storage, `admin-profile-pictures/${auth.currentUser.email}`);
+                    await uploadBytes(storageRef, file);
+                    const photoURL = await getDownloadURL(storageRef);
+        
+                    document.getElementById('profileImage').src = photoURL;
+                    document.getElementById('profileImage').style.display = 'block';
+                    document.getElementById('defaultUserIcon').style.display = 'none';
+        
+                    await setDoc(doc(db, "AdminProfile", auth.currentUser.email), {
+                        photoURL: photoURL
+                    }, { merge: true });
+        
+                    showAlert("Profile picture updated successfully!", "success");
+                } catch (error) {
+                    console.error("Error:", error);
+                    showAlert("Error uploading profile picture", "error");
+                }
+            };
+        
+            window.handleFormSubmit = async (event) => {
+                event.preventDefault();
+                if (!auth.currentUser) return;
+        
+                try {
+                    await setDoc(doc(db, "AdminProfile", auth.currentUser.email), {
+                        middleName: document.getElementById('middleName').value,
+                        pronouns: document.getElementById('pronouns').value,
+                        gender: document.getElementById('gender').value,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+        
+                    showAlert("Profile updated successfully!", "success");
+                } catch (error) {
+                    console.error("Error:", error);
+                    showAlert("Error updating profile", "error");
+                }
+            };
+        
+            window.showAlert = (message, type) => {
+                const alert = document.getElementById('alertMessage');
+                alert.textContent = message;
+                alert.className = `alert alert-${type}`;
+                alert.style.display = 'block';
+                setTimeout(() => alert.style.display = 'none', 3000);
+            };
+        
+            // Load admin profile data
+            onAuthStateChanged(auth, async (user) => {
+                console.log("Auth state changed:", user?.email);
+                
                 if (!user) {
-                  window.location.href = "login.html";
-                } else {
-                  loadProfileData();
+                    window.location.href = 'login.html';
+                    return;
                 }
-              });
-            });
-      
-            async function loadProfileData() {
-              try {
-                const user = firebase.auth().currentUser;
-                if (!user) return;
-      
-                // Get data from CampusRegistration
-                const regDoc = await firebase.firestore()
-                  .collection("CampusRegistration")
-                  .doc(user.uid)
-                  .get();
-      
-                // Get data from StudentProfile
-                const profileDoc = await firebase.firestore()
-                  .collection("StudentProfile")
-                  .doc(user.uid)
-                  .get();
-      
-                const regData = regDoc.data() || {};
-                const profileData = profileDoc.data() || {};
-      
-                // Set values for disabled fields
-                document.getElementById("firstName").value = regData.firstName || "";
-                document.getElementById("lastName").value = regData.lastName || "";
-                document.getElementById("studentId").value = regData.studentId || "";
-                document.getElementById("email").value = regData.email || user.email || "";
-      
-                // Set values for editable fields
-                document.getElementById("middleName").value = profileData.middleName || "";
-                document.getElementById("pronouns").value = profileData.pronouns || "";
-                document.getElementById("gender").value = profileData.gender || "";
-      
-                // Handle profile picture
-                const profileImage = document.getElementById("profileImage");
-                const defaultUserIcon = document.getElementById("defaultUserIcon");
-                
-                if (profileData.photoURL) {
-                  profileImage.src = profileData.photoURL;
-                  profileImage.style.display = "block";
-                  defaultUserIcon.style.display = "none";
-                } else {
-                  profileImage.style.display = "none";
-                  defaultUserIcon.style.display = "block";
+        
+                try {
+                    // Get admin data from admins collection
+                    const adminRef = collection(db, "admins");
+                    const adminQuery = query(adminRef, where("email", "==", user.email));
+                    const adminSnapshot = await getDocs(adminQuery);
+        
+                    if (!adminSnapshot.empty) {
+                        const adminDoc = adminSnapshot.docs[0];
+                        const adminData = adminDoc.data();
+                        console.log("Found admin data:", adminData);
+        
+                        // Fill basic info
+                        document.getElementById('firstName').value = adminData.firstName || adminData.firstname || "";
+                        document.getElementById('lastName').value = adminData.lastName || adminData.lastname || "";
+                        document.getElementById('email').value = adminData.email || "";
+                        // Remove studentId field from form or hide it
+                        const studentIdField = document.getElementById('studentId');
+                        if (studentIdField) {
+                            studentIdField.parentElement.style.display = 'none';
+                        }
+        
+                        // Get additional profile data from AdminProfile collection
+                        const profileDoc = await getDoc(doc(db, "AdminProfile", user.email));
+                        if (profileDoc.exists()) {
+                            const profileData = profileDoc.data();
+                            document.getElementById('middleName').value = profileData.middleName || "";
+                            document.getElementById('pronouns').value = profileData.pronouns || "";
+                            document.getElementById('gender').value = profileData.gender || "";
+        
+                            if (profileData.photoURL) {
+                                document.getElementById('profileImage').src = profileData.photoURL;
+                                document.getElementById('profileImage').style.display = 'block';
+                                document.getElementById('defaultUserIcon').style.display = 'none';
+                            }
+                        }
+                    } else {
+                        console.log("No admin found with email:", user.email);
+                        showAlert("Admin profile not found", "error");
+                    }
+                } catch (error) {
+                    console.error("Error loading profile:", error);
+                    showAlert("Error loading profile: " + error.message, "error");
                 }
-              } catch (error) {
-                console.error("Error loading profile:", error);
-                showAlert("Error loading profile data", "error");
-              }
-            }
-      
-            // Photo upload handling
-            function handlePhotoUpload(event) {
-              const file = event.target.files[0];
-              if (!file) return;
-      
-              const user = firebase.auth().currentUser;
-              if (!user) return;
-      
-              const storageRef = firebase.storage().ref();
-              const fileRef = storageRef.child(`profile-pictures/${user.uid}`);
-      
-              fileRef.put(file).then(async () => {
-                const photoURL = await fileRef.getDownloadURL();
-                
-                // Update profile picture display
-                document.getElementById("profileImage").src = photoURL;
-                document.getElementById("profileImage").style.display = "block";
-                document.getElementById("defaultUserIcon").style.display = "none";
-      
-                // Update Firestore
-                await firebase.firestore()
-                  .collection("StudentProfile")
-                  .doc(user.uid)
-                  .set({ photoURL }, { merge: true });
-      
-                showAlert("Profile picture updated successfully!", "success");
-              }).catch(error => {
-                console.error("Error uploading photo:", error);
-                showAlert("Error uploading profile picture", "error");
-              });
-            }
-      
-            // Form submission handling
-            function handleFormSubmit(event) {
-              event.preventDefault();
-              
-              const user = firebase.auth().currentUser;
-              if (!user) return;
-      
-              firebase.firestore()
-                .collection("StudentProfile")
-                .doc(user.uid)
-                .set({
-                  middleName: document.getElementById("middleName").value,
-                  pronouns: document.getElementById("pronouns").value,
-                  gender: document.getElementById("gender").value,
-                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true })
-                .then(() => {
-                  showAlert("Profile updated successfully!", "success");
-                })
-                .catch(error => {
-                  console.error("Error updating profile:", error);
-                  showAlert("Error updating profile", "error");
-                });
-            }
-      
-            function showAlert(message, type) {
-              const alertMessage = document.getElementById("alertMessage");
-              alertMessage.textContent = message;
-              alertMessage.className = `alert alert-${type}`;
-              alertMessage.style.display = "block";
-              setTimeout(() => {
-                alertMessage.style.display = "none";
-              }, 3000);
-            }
-      
-            // Add event listeners after DOM loads
-            document.addEventListener('DOMContentLoaded', function() {
-              document.getElementById("photoInput").addEventListener("change", handlePhotoUpload);
-              document.getElementById("profileForm").addEventListener("submit", handleFormSubmit);
             });
-          </script>
+        
+            // Add event listener for photo upload
+            document.getElementById('photoInput').addEventListener('change', handlePhotoUpload);
+        </script>
   </body>
 </html>
