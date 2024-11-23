@@ -305,21 +305,31 @@
     }
 
     try {
-        // Get data directly using studentId "2400458950"
-        const campusDoc = await getDoc(doc(db, "CampusRegistration", "2400458950"));
+        // Get all documents from CampusRegistration to find the one with matching email
+        const campusRef = collection(db, "CampusRegistration");
+        const campusSnapshot = await getDocs(campusRef);
         
-        if (campusDoc.exists()) {
-            const campusData = campusDoc.data();
+        let foundDoc = null;
+        campusSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.email === user.email) {
+                foundDoc = { ...data, studentId: doc.id };
+            }
+        });
+
+        if (foundDoc) {
+            const campusData = foundDoc;
+            const studentId = foundDoc.studentId;
             console.log("Found campus registration data:", campusData);
 
             // Fill basic info from CampusRegistration
             document.getElementById('firstName').value = campusData.name || '';
             document.getElementById('lastName').value = campusData.surname || '';
-            document.getElementById('studentId').value = "2400458950";
-            document.getElementById('email').value = campusData.email || user.email;
+            document.getElementById('studentId').value = studentId;
+            document.getElementById('email').value = campusData.email;
 
             // Check for additional profile data
-            const profileDoc = await getDoc(doc(db, "StudentProfile", "2400458950"));
+            const profileDoc = await getDoc(doc(db, "StudentProfile", studentId));
             if (profileDoc.exists()) {
                 const profileData = profileDoc.data();
                 document.getElementById('middleName').value = profileData.middleName || '';
@@ -333,7 +343,7 @@
                 }
             }
         } else {
-            console.error("No registration found");
+            console.error("No registration found for email:", user.email);
             showAlert("Error: Registration not found", "error");
         }
     } catch (error) {
@@ -341,64 +351,56 @@
         showAlert("Error loading profile data: " + error.message, "error");
     }
 });
-        // Handle form submission
-        window.handleFormSubmit = async (event) => {
-            event.preventDefault();
-            if (!auth.currentUser) return;
-    
-            try {
-                const studentId = document.getElementById('studentId').value;
-                if (!studentId) {
-                    alert("Student ID not found");
-                    return;
-                }
-    
-                await setDoc(doc(db, "StudentProfile", studentId), {
-                    middleName: document.getElementById('middleName').value,
-                    pronouns: document.getElementById('pronouns').value,
-                    gender: document.getElementById('gender').value,
-                    updatedAt: new Date().toISOString()
-                }, { merge: true });
-    
-                showAlert("Profile updated successfully!", "success");
-            } catch (error) {
-                console.error("Error updating profile:", error);
-                showAlert("Error updating profile: " + error.message, "error");
-            }
-        };
-    
-        // Handle photo upload
-        window.handlePhotoUpload = async (event) => {
-            const file = event.target.files[0];
-            if (!file || !auth.currentUser) return;
-    
-            try {
-                const studentId = document.getElementById('studentId').value;
-                if (!studentId) {
-                    alert("Student ID not found");
-                    return;
-                }
-    
-                const storageRef = ref(storage, `profile-pictures/${studentId}`);
-                await uploadBytes(storageRef, file);
-                const photoURL = await getDownloadURL(storageRef);
-    
-                // Update display
-                document.getElementById('profileImage').src = photoURL;
-                document.getElementById('profileImage').style.display = 'block';
-                document.getElementById('defaultUserIcon').style.display = 'none';
-    
-                // Save to profile
-                await setDoc(doc(db, "StudentProfile", studentId), {
-                    photoURL: photoURL
-                }, { merge: true });
-    
-                showAlert("Profile picture updated successfully!", "success");
-            } catch (error) {
-                console.error("Error uploading photo:", error);
-                showAlert("Error uploading profile picture: " + error.message, "error");
-            }
-        };
+
+// Update form submission handler
+window.handleFormSubmit = async (event) => {
+    event.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const studentId = document.getElementById('studentId').value;
+        await setDoc(doc(db, "StudentProfile", studentId), {
+            middleName: document.getElementById('middleName').value,
+            pronouns: document.getElementById('pronouns').value,
+            gender: document.getElementById('gender').value,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        showAlert("Profile updated successfully!", "success");
+    } catch (error) {
+        console.error("Error:", error);
+        showAlert("Error updating profile", "error");
+    }
+};
+
+// Update photo upload handler
+window.handlePhotoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file || !auth.currentUser) return;
+
+    try {
+        const studentId = document.getElementById('studentId').value;
+        const storageRef = ref(storage, `profile-pictures/${studentId}`);
+        
+        await uploadBytes(storageRef, file);
+        const photoURL = await getDownloadURL(storageRef);
+
+        document.getElementById('profileImage').src = photoURL;
+        document.getElementById('profileImage').style.display = 'block';
+        document.getElementById('defaultUserIcon').style.display = 'none';
+
+        // Save URL to profile
+        await setDoc(doc(db, "StudentProfile", studentId), {
+            photoURL: photoURL
+        }, { merge: true });
+
+        showAlert("Profile picture updated successfully!", "success");
+    } catch (error) {
+        console.error("Error:", error);
+        showAlert("Error uploading profile picture", "error");
+    }
+};
     
         // Show alert messages
         window.showAlert = (message, type) => {
@@ -435,6 +437,10 @@
                 <i class="fas fa-book"></i>
                 <span>Modules</span>
             </a>
+            <a class="menu-item" href="Chat.html?isAdmin=false">
+    <i class="fas fa-comments"></i>
+    My Chats
+</a>
             <a class="menu-item logout" href="index.html">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
