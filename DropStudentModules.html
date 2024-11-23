@@ -39,6 +39,40 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
+      .module-select-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .semester-info {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+      }
+
+      .warning-text {
+        color: #dc3545;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background-color: #fff3f3;
+        border-radius: 4px;
+      }
+
+      .confirmation-box {
+        margin: 1rem 0;
+        padding: 1rem;
+        border: 1px solid #ffc107;
+        border-radius: 4px;
+        background-color: #fff8e1;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 1rem;
+        color: #666;
+      }
+
       h1 {
         text-align: center;
         margin-bottom: 2rem;
@@ -153,42 +187,55 @@
         </div>
 
         <div class="form-group">
-          <label for="moduleSelect">Select Module to Drop</label>
-          <select id="moduleSelect" required>
-            <option value="">Select a module to drop</option>
-            <!-- Options will be populated dynamically -->
+          <label for="semester">Select Semester</label>
+          <select id="semester" required>
+            <option value="">Select Semester</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="passwordInput">Password</label>
-          <input
-            type="password"
-            id="passwordInput"
-            required
-            placeholder="Enter your password"
-          />
+          <label for="year">Select Year</label>
+          <select id="year" required>
+            <option value="">Select Year</option>
+            <!-- Years will be populated dynamically -->
+          </select>
         </div>
 
-        <div class="confirmation">
-          <input type="checkbox" id="confirmCheckbox" required />
-          <label for="confirmCheckbox"
-            >I am sure I want to drop this module</label
-          >
+        <div
+          id="moduleSelectContainer"
+          class="module-select-group"
+          style="display: none"
+        >
+          <label>Select Modules to Drop</label>
+          <div id="moduleList" class="module-list">
+            <!-- Modules will be populated dynamically -->
+          </div>
+        </div>
+
+        <div class="confirmation-box" style="display: none">
+          <div class="confirmation">
+            <input type="checkbox" id="confirmCheckbox" required />
+            <label for="confirmCheckbox"
+              >I understand that dropping modules cannot be undone</label
+            >
+          </div>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
         <div id="successMessage" class="success-message"></div>
 
         <button type="submit" id="dropModuleBtn" class="submit-btn">
-          Drop Module
+          Drop Selected Modules
         </button>
         <button
           type="button"
           class="submit-btn"
-          onclick="location.href='StudentModulesDashboard.html'"
+          onclick="window.location.href='StudentModulesDashboard.html'"
+          style="background-color: #6c757d"
         >
-          Back to Modules Dashboard
+          Back to Dashboard
         </button>
       </form>
     </div>
@@ -205,26 +252,23 @@
         query,
         where,
         getDocs,
-        deleteDoc,
         doc,
+        getDoc,
+        updateDoc,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
       import {
         getAuth,
         onAuthStateChanged,
-        EmailAuthProvider,
-        reauthenticateWithCredential,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-      // Firebase configuration
+      // Your Firebase config
       const firebaseConfig = {
         apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
         authDomain: "kampus-konnect-38932.firebaseapp.com",
-        databaseURL: "https://kampus-konnect-38932-default-rtdb.firebaseio.com",
         projectId: "kampus-konnect-38932",
         storageBucket: "kampus-konnect-38932.appspot.com",
         messagingSenderId: "163800800971",
         appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
-        measurementId: "G-4DV0GBX6YM",
       };
 
       // Initialize Firebase
@@ -232,108 +276,191 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      let currentUser = null;
       let currentStudentId = null;
+      let studentModulesDoc = null;
 
+      // Initialize page
       onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          currentUser = user;
-          await loadStudentInfo(user.email);
-          await loadStudentModules(currentStudentId);
-        } else {
+        if (!user) {
           window.location.href = "login.html";
+          return;
         }
+        await loadStudentData(user.email);
       });
 
-      async function loadStudentInfo(email) {
+      async function loadStudentData(email) {
         try {
           const studentsRef = collection(db, "students");
           const q = query(studentsRef, where("email", "==", email));
           const querySnapshot = await getDocs(q);
 
-          if (!querySnapshot.empty) {
-            const studentData = querySnapshot.docs[0].data();
-            currentStudentId = studentData.studentId;
-            document.getElementById(
-              "studentInfo"
-            ).textContent = `${studentData.firstName} ${studentData.lastName} (${studentData.studentId})`;
-            document.getElementById("studentId").value = studentData.studentId; // Update student ID field
+          if (querySnapshot.empty) {
+            throw new Error("Student not found");
           }
+
+          const studentData = querySnapshot.docs[0].data();
+          currentStudentId = studentData.studentId;
+
+          // Update UI
+          document.getElementById("studentId").value = currentStudentId;
+          document.getElementById(
+            "studentInfo"
+          ).textContent = `${studentData.firstName} ${studentData.lastName} (${currentStudentId})`;
+
+          // Load student modules
+          await loadStudentModules();
         } catch (error) {
-          console.error("Error loading student info:", error);
+          console.error("Error loading student data:", error);
+          showError("Error loading student data");
         }
       }
 
-      async function loadStudentModules(studentId) {
+      async function loadStudentModules() {
         try {
-          const moduleSelect = document.getElementById("moduleSelect");
-          moduleSelect.innerHTML =
-            '<option value="">Select a module to drop</option>';
+          const studentModulesRef = doc(db, "StudentModules", currentStudentId);
+          const docSnap = await getDoc(studentModulesRef);
 
-          const studentModulesRef = collection(db, "studentModules");
-          const q = query(
-            studentModulesRef,
-            where("studentId", "==", studentId)
+          if (!docSnap.exists()) {
+            showError("No registered modules found");
+            return;
+          }
+
+          studentModulesDoc = docSnap.data();
+
+          // Populate years dropdown
+          const yearSelect = document.getElementById("year");
+          yearSelect.innerHTML = '<option value="">Select Year</option>';
+
+          const years = new Set(
+            studentModulesDoc.registrations.map((reg) => reg.year)
           );
-          const querySnapshot = await getDocs(q);
-
-          querySnapshot.forEach((doc) => {
-            const moduleData = doc.data();
+          [...years].sort().forEach((year) => {
             const option = document.createElement("option");
-            option.value = doc.id;
-            option.textContent = `${moduleData.moduleCode} - ${moduleData.moduleName}`;
-            moduleSelect.appendChild(option);
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
           });
         } catch (error) {
           console.error("Error loading modules:", error);
+          showError("Error loading modules");
         }
       }
 
+      // Handle semester and year selection
+      document
+        .getElementById("semester")
+        .addEventListener("change", updateModuleList);
+      document
+        .getElementById("year")
+        .addEventListener("change", updateModuleList);
+
+      function updateModuleList() {
+        const semester = document.getElementById("semester").value;
+        const year = document.getElementById("year").value;
+        const moduleList = document.getElementById("moduleList");
+        const moduleSelectContainer = document.getElementById(
+          "moduleSelectContainer"
+        );
+
+        if (!semester || !year) {
+          moduleSelectContainer.style.display = "none";
+          return;
+        }
+
+        const registration = studentModulesDoc?.registrations?.find(
+          (reg) => reg.semester === semester && reg.year === year
+        );
+
+        if (!registration || !registration.modules.length) {
+          moduleList.innerHTML =
+            "<p>No modules found for selected semester and year</p>";
+          return;
+        }
+
+        moduleList.innerHTML = "";
+        registration.modules.forEach((module) => {
+          const div = document.createElement("div");
+          div.className = "module-item";
+          div.innerHTML = `
+                    <input type="checkbox" class="module-checkbox" value="${module.moduleCode}">
+                    <label>${module.moduleCode} - ${module.moduleName}</label>
+                `;
+          moduleList.appendChild(div);
+        });
+
+        moduleSelectContainer.style.display = "block";
+        document.querySelector(".confirmation-box").style.display = "block";
+      }
+
+      // Handle form submission
       document
         .getElementById("dropModulesForm")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
-          const moduleId = document.getElementById("moduleSelect").value;
-          const password = document.getElementById("passwordInput").value;
-          const isConfirmed =
-            document.getElementById("confirmCheckbox").checked;
-          const errorMessageElement = document.getElementById("errorMessage");
-          const successMessageElement =
-            document.getElementById("successMessage");
 
-          if (!moduleId || !password || !isConfirmed) {
-            errorMessageElement.textContent =
-              "Please fill in all fields and confirm your decision.";
-            successMessageElement.textContent = "";
+          const semester = document.getElementById("semester").value;
+          const year = document.getElementById("year").value;
+          const confirmed = document.getElementById("confirmCheckbox").checked;
+          const selectedModules = Array.from(
+            document.querySelectorAll(".module-checkbox:checked")
+          ).map((cb) => cb.value);
+
+          if (
+            !semester ||
+            !year ||
+            !confirmed ||
+            selectedModules.length === 0
+          ) {
+            showError("Please complete all required fields");
             return;
           }
 
           try {
-            // Reauthenticate the user
-            const credential = EmailAuthProvider.credential(
-              currentUser.email,
-              password
+            const registration = studentModulesDoc.registrations.find(
+              (reg) => reg.semester === semester && reg.year === year
             );
-            await reauthenticateWithCredential(currentUser, credential);
 
-            // Delete the module from studentModules collection
-            await deleteDoc(doc(db, "studentModules", moduleId));
+            if (!registration) {
+              throw new Error("Registration not found");
+            }
 
-            successMessageElement.textContent = "Module successfully dropped.";
-            errorMessageElement.textContent = "";
-            document.getElementById("moduleSelect").value = "";
-            document.getElementById("passwordInput").value = "";
-            document.getElementById("confirmCheckbox").checked = false;
+            // Filter out dropped modules
+            registration.modules = registration.modules.filter(
+              (module) => !selectedModules.includes(module.moduleCode)
+            );
 
-            // Reload the modules list
-            await loadStudentModules(currentStudentId);
+            // Update the document
+            const studentModulesRef = doc(
+              db,
+              "StudentModules",
+              currentStudentId
+            );
+            await updateDoc(studentModulesRef, {
+              registrations: studentModulesDoc.registrations,
+            });
+
+            showSuccess("Modules dropped successfully");
+            setTimeout(() => {
+              window.location.href = "StudentModulesDashboard.html";
+            }, 2000);
           } catch (error) {
-            console.error("Error dropping module:", error);
-            errorMessageElement.textContent =
-              "Error dropping module. Please check your password and try again.";
-            successMessageElement.textContent = "";
+            console.error("Error dropping modules:", error);
+            showError("Error dropping modules");
           }
         });
+
+      function showError(message) {
+        const errorElement = document.getElementById("errorMessage");
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+        setTimeout(() => (errorElement.style.display = "none"), 5000);
+      }
+
+      function showSuccess(message) {
+        const successElement = document.getElementById("successMessage");
+        successElement.textContent = message;
+        successElement.style.display = "block";
+      }
     </script>
   </body>
 </html>
