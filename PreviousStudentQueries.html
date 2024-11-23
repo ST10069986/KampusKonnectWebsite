@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Previous Student Queries</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -34,51 +37,135 @@
       .query-card {
         border: 1px solid #e5e5e5;
         border-radius: 4px;
-        padding: 10px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 15px;
+        margin-bottom: 15px;
       }
 
       .query-card.alumni {
         border-left: 4px solid #9333ea;
       }
-
       .query-card.campus {
         border-left: 4px solid #4299e1;
       }
-
       .query-card.student-hub {
         border-left: 4px solid #f472b6;
       }
 
-      .query-card .status {
+      .status {
+        display: inline-block;
         padding: 4px 8px;
         border-radius: 4px;
         font-weight: bold;
+        margin-top: 10px;
       }
 
-      .query-card .status.pending {
+      .status.pending {
         background-color: #fef08a;
         color: #713f12;
       }
-
-      .query-card .status.processing {
+      .status.processing {
         background-color: #bfdbfe;
         color: #1e3a8a;
       }
-
-      .query-card .status.solved {
+      .status.solved {
         background-color: #dcfce7;
         color: #065f46;
       }
 
-      .back-button {
-        display: block;
-        margin-top: 20px;
+      .feedback-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+      }
+
+      .star-rating {
+        margin: 10px 0;
+      }
+
+      .star {
+        cursor: pointer;
+        font-size: 24px;
+        color: #ddd;
+        transition: color 0.2s;
+      }
+
+      .star.selected {
+        color: gold;
+      }
+
+      .feedback-input {
+        width: 100%;
+        min-height: 80px;
+        margin: 10px 0;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        resize: vertical;
+      }
+
+      .feedback-btn {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .feedback-btn:hover {
+        background-color: #3367d6;
+      }
+
+      .login-form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .chat-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background-color: #4285f4;
+        color: white;
+        border-radius: 20px;
+        transition: all 0.3s ease;
         text-decoration: none;
-        color: #4299e1;
+      }
+
+      .chat-btn:hover {
+        background-color: #3367d6;
+        transform: translateY(-2px);
+      }
+
+      .query-card {
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .query-card:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .back-button {
+        display: inline-block;
+        margin-top: 20px;
+        color: #4285f4;
+        text-decoration: none;
         font-weight: bold;
       }
     </style>
@@ -87,44 +174,29 @@
     <div class="container">
       <h1>Previous Student Queries</h1>
 
-      <div
-        id="login-form"
-        class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col"
-      >
-        <h2 class="text-2xl font-bold mb-4">Enter Your Student Credentials</h2>
-        <div class="mb-4">
-          <label class="block text-gray-700 font-bold mb-2" for="student-id">
-            Student ID:
-          </label>
+      <div id="login-form" class="login-form">
+        <h2>Enter Your Student Credentials</h2>
+        <div class="form-group">
+          <label for="student-id">Student ID:</label>
           <input
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="student-id"
             type="text"
+            id="student-id"
+            class="form-input"
             placeholder="Enter your student ID"
             required
           />
         </div>
-        <div class="mb-6">
-          <label class="block text-gray-700 font-bold mb-2" for="password">
-            Password:
-          </label>
+        <div class="form-group">
+          <label for="password">Password:</label>
           <input
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-            id="password"
             type="password"
+            id="password"
+            class="form-input"
             placeholder="Enter your password"
             required
           />
         </div>
-        <div class="flex items-center justify-between">
-          <button
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="button"
-            id="login-button"
-          >
-            View Queries
-          </button>
-        </div>
+        <button id="login-button" class="feedback-btn">View Queries</button>
       </div>
 
       <div id="all-queries" style="display: none">
@@ -144,12 +216,8 @@
         </div>
       </div>
 
-      <a href="StudentDashboard.html" class="back-button">Back</a>
+      <a href="StudentDashboard.html" class="back-button">Back to Dashboard</a>
     </div>
-
-    <!-- Include Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <script>
       // Firebase configuration
@@ -166,142 +234,326 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
-      // Fetch and sort queries for the specific student
-      const fetchAndSortQueries = async (studentId, password) => {
+      // Global variables
+      let currentStudentId = "";
+      let currentStudent = null;
+
+      async function fetchAndSortQueries(studentId, password) {
         try {
-          // Check if the student is valid
+          // Verify student credentials
           const studentSnapshot = await db
             .collection("students")
             .where("studentId", "==", studentId)
             .where("password", "==", password)
             .get();
+
           if (studentSnapshot.empty) {
             alert("Invalid student ID or password.");
             return;
           }
 
-          const [
-            alumniQuerySnapshot,
-            studentHubQuerySnapshot,
-            campusQuerySnapshot,
-          ] = await Promise.all([
-            db
-              .collection("AlumniQuery")
-              .where("studentId", "==", studentId)
-              .get(),
-            db
-              .collection("StudentHubQuery")
-              .where("studentId", "==", studentId)
-              .get(),
-            db
-              .collection("CampusQuery")
-              .where("studentId", "==", studentId)
-              .get(),
-          ]);
+          // Store student data
+          currentStudent = {
+            studentId: studentId,
+            ...studentSnapshot.docs[0].data(),
+          };
 
-          const queries = [
-            ...alumniQuerySnapshot.docs.map((doc) => ({
+          // Store in sessionStorage for persistence
+          sessionStorage.setItem(
+            "currentStudent",
+            JSON.stringify(currentStudent)
+          );
+
+          currentStudentId = studentId;
+
+          // Fetch active queries (Pending and Processing)
+          const [alumniQueries, studentHubQueries, campusQueries] =
+            await Promise.all([
+              db
+                .collection("AlumniQuery")
+                .where("studentId", "==", studentId)
+                .get(),
+              db
+                .collection("StudentHubQuery")
+                .where("studentId", "==", studentId)
+                .get(),
+              db
+                .collection("CampusQuery")
+                .where("studentId", "==", studentId)
+                .get(),
+            ]);
+
+          // Fetch solved queries separately
+          const solvedQueries = await db
+            .collection("SolvedQueries")
+            .where("studentId", "==", studentId)
+            .get();
+
+          // Process queries
+          const activeQueries = [
+            ...alumniQueries.docs.map((doc) => ({
               id: doc.id,
               ...doc.data(),
-              dateSubmitted: doc.data().dateSubmitted,
               queryCategory: "Alumni Student Queries",
             })),
-            ...studentHubQuerySnapshot.docs.map((doc) => ({
+            ...studentHubQueries.docs.map((doc) => ({
               id: doc.id,
               ...doc.data(),
-              dateSubmitted: doc.data().dateSubmitted,
               queryCategory: "Student Hub Queries",
             })),
-            ...campusQuerySnapshot.docs.map((doc) => ({
+            ...campusQueries.docs.map((doc) => ({
               id: doc.id,
               ...doc.data(),
-              dateSubmitted: doc.data().dateSubmitted,
               queryCategory: "Campus Queries",
             })),
           ];
 
-          const pendingQueries = [];
-          const processingQueries = [];
-          const solvedQueries = [];
+          const solvedQueriesList = solvedQueries.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
 
-          queries.forEach((query) => {
-            const queryCard = createQueryCard(query);
-            switch (query.status) {
-              case "Pending":
-                pendingQueries.push(queryCard);
-                break;
-              case "Processing":
-                processingQueries.push(queryCard);
-                break;
-              case "Solved":
-                solvedQueries.push(queryCard);
-                break;
-            }
-          });
+          console.log("Active Queries:", activeQueries);
+          console.log("Solved Queries:", solvedQueriesList);
 
-          const pendingQueriesDiv = document.getElementById("pending-queries");
-          const processingQueriesDiv =
-            document.getElementById("processing-queries");
-          const solvedQueriesDiv = document.getElementById("solved-queries");
+          // Filter and display queries
+          const pendingQueries = activeQueries.filter(
+            (q) => q.status === "Pending" || !q.status
+          );
+          const processingQueries = activeQueries.filter(
+            (q) => q.status === "Processing"
+          );
 
-          pendingQueriesDiv.innerHTML = pendingQueries.join("");
-          processingQueriesDiv.innerHTML = processingQueries.join("");
-          solvedQueriesDiv.innerHTML = solvedQueries.join("");
+          // Update UI
+          document.getElementById("pending-queries").innerHTML = pendingQueries
+            .map(createQueryCard)
+            .join("");
+          document.getElementById("processing-queries").innerHTML =
+            processingQueries.map(createQueryCard).join("");
+          document.getElementById("solved-queries").innerHTML =
+            solvedQueriesList.map(createSolvedQueryCard).join("");
 
-          // Show the queries section and hide the login form
+          // Show queries section
           document.getElementById("login-form").style.display = "none";
           document.getElementById("all-queries").style.display = "block";
         } catch (error) {
           console.error("Error fetching queries:", error);
+          alert("Error fetching queries. Please try again.");
         }
-      };
+      }
 
-      const createQueryCard = (query) => {
-        let queryCardClass = "query-card";
-        if (query.queryCategory === "Alumni Student Queries") {
-          queryCardClass += " alumni";
-        } else if (query.queryCategory === "Campus Queries") {
-          queryCardClass += " campus";
-        } else if (query.queryCategory === "Student Hub Queries") {
-          queryCardClass += " student-hub";
-        }
+      function processQuerySnapshot(snapshot, category) {
+        return snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          queryCategory: doc.data().queryCategory || category,
+        }));
+      }
 
-        let statusClass = "status";
-        switch (query.status) {
-          case "Pending":
-            statusClass += " pending";
-            break;
-          case "Processing":
-            statusClass += " processing";
-            break;
-          case "Solved":
-            statusClass += " solved";
-            break;
-        }
+      function updateQueryDisplays(activeQueries, solvedQueries) {
+        const pendingQueries = activeQueries.filter(
+          (q) => q.status === "Pending"
+        );
+        const processingQueries = activeQueries.filter(
+          (q) => q.status === "Processing"
+        );
 
-        // Convert the Firestore Timestamp to a standard date and time format
-        const dateSubmitted = query.dateSubmitted.toDate().toLocaleString();
+        document.getElementById("pending-queries").innerHTML = pendingQueries
+          .map(createQueryCard)
+          .join("");
+        document.getElementById("processing-queries").innerHTML =
+          processingQueries.map(createQueryCard).join("");
+        document.getElementById("solved-queries").innerHTML = solvedQueries
+          .map(createSolvedQueryCard)
+          .join("");
+      }
+
+      function createQueryCard(query) {
+        const categoryClass = query.queryCategory
+          .toLowerCase()
+          .replace(/\s+/g, "-");
+        return `
+          <div class="query-card ${categoryClass}">
+            <h3>${query.queryName || query.queryType}</h3>
+            <p><strong>Type:</strong> ${query.queryType}</p>
+            <p><strong>Category:</strong> ${query.queryCategory}</p>
+            <p><strong>Date:</strong> ${query.dateSubmitted
+              .toDate()
+              .toLocaleString()}</p>
+            <p><strong>Description:</strong> ${query.description}</p>
+            ${
+              query.status === "Processing"
+                ? `<p><strong>Admin Feedback:</strong> ${
+                    query.adminFeedback || "Not yet provided"
+                  }</p>`
+                : ""
+            }
+            <div class="status ${query.status.toLowerCase()}">${
+          query.status
+        }</div>
+          </div>
+        `;
+      }
+
+      function createSolvedQueryCard(query) {
+        const categoryClass = query.queryCategory
+          .toLowerCase()
+          .replace(/\s+/g, "-");
+        const studentData = JSON.stringify(currentStudent).replace(
+          /"/g,
+          "&quot;"
+        );
 
         return `
-    <div class="${queryCardClass}">
+    <div class="query-card ${categoryClass}">
       <div>
-        <h3>${query.queryName}</h3>
-        <p>Query Type: ${query.queryType}</p>
-        <p>Query Category: ${query.queryCategory}</p>
-        <p>Date Submitted: ${dateSubmitted}</p>
-        <p>Description: ${query.description}</p>
-        <p>Additional Details: ${query.additionalDetails || "None provided"}</p>
+        <h3>${query.queryName || query.queryType}</h3>
+        <p><strong>Type:</strong> ${query.queryType}</p>
+        <p><strong>Category:</strong> ${query.queryCategory}</p>
+        <p><strong>Date:</strong> ${query.dateSubmitted
+          .toDate()
+          .toLocaleString()}</p>
+        <p><strong>Description:</strong> ${query.description}</p>
+        <p><strong>Admin Feedback:</strong> ${
+          query.adminFeedback || "No feedback provided"
+        }</p>
+        <p><strong>Solved by:</strong> ${
+          query.adminEmail || "Unknown Admin"
+        }</p>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+          <div class="status solved">Solved</div>
+          <a href="Chat.html?queryId=${
+            query.id
+          }&adminEmail=${encodeURIComponent(
+          query.adminEmail
+        )}&isAdmin=false&studentId=${currentStudent.studentId}" 
+             class="chat-btn feedback-btn" style="text-decoration: none;">
+            💬 Chat with Admin
+          </a>
+        </div>
+
+        <div class="feedback-section">
+          <h4>Rate Admin's Response</h4>
+          <div class="star-rating" id="star-rating-${query.id}">
+            ${createStarRating(query.id)}
+          </div>
+          <textarea
+            id="feedback-${query.id}"
+            class="feedback-input"
+            placeholder="Share your thoughts about the admin's response..."
+          ></textarea>
+          <button
+            onclick="submitFeedback('${query.id}')"
+            class="feedback-btn"
+          >
+            Submit Feedback
+          </button>
+        </div>
       </div>
-      <div class="${statusClass}">${query.status}</div>
     </div>
   `;
-      };
+      }
 
-      // Add event listener to the login button
-      document.getElementById("login-button").addEventListener("click", () => {
-        const studentId = document.getElementById("student-id").value;
-        const password = document.getElementById("password").value;
-        fetchAndSortQueries(studentId, password);
+      function createStarRating(queryId) {
+        return Array(5)
+          .fill(0)
+          .map(
+            (_, i) => `
+          <span class="star" data-rating="${
+            i + 1
+          }" data-query="${queryId}" onclick="setRating(${
+              i + 1
+            }, '${queryId}')">☆</span>
+        `
+          )
+          .join("");
+      }
+
+      function setRating(rating, queryId) {
+        const stars = document.querySelectorAll(
+          `#star-rating-${queryId} .star`
+        );
+        stars.forEach((star, index) => {
+          if (index < rating) {
+            star.textContent = "★";
+            star.classList.add("selected");
+          } else {
+            star.textContent = "☆";
+            star.classList.remove("selected");
+          }
+        });
+        // Store the rating in the element's dataset
+        document.querySelector(
+          `#star-rating-${queryId}`
+        ).dataset.currentRating = rating;
+      }
+
+      async function submitFeedback(queryId) {
+        try {
+          const starRating = document.querySelector(`#star-rating-${queryId}`);
+          const rating = parseInt(starRating.dataset.currentRating);
+          const feedbackText = document.getElementById(
+            `feedback-${queryId}`
+          ).value;
+
+          if (!rating || !feedbackText) {
+            alert("Please provide both a rating and feedback text!");
+            return;
+          }
+
+          const querySnapshot = await db
+            .collection("SolvedQueries")
+            .doc(queryId)
+            .get();
+          const queryData = querySnapshot.data();
+
+          await db.collection("AdminReviews").add({
+            queryId: queryId,
+            studentId: currentStudentId,
+            queryCategory: queryData.queryCategory,
+            adminFeedback: queryData.adminFeedback,
+            studentFeedback: feedbackText,
+            rating: rating,
+            dateSubmitted: new Date(),
+            originalQueryType: queryData.queryType,
+            originalQueryName: queryData.queryName,
+            originalDescription: queryData.description,
+          });
+
+          alert("Thank you for your feedback!");
+
+          // Reset the form
+          document.getElementById(`feedback-${queryId}`).value = "";
+          const stars = document.querySelectorAll(
+            `#star-rating-${queryId} .star`
+          );
+          stars.forEach((star) => {
+            star.textContent = "☆";
+            star.classList.remove("selected");
+          });
+          delete starRating.dataset.currentRating;
+        } catch (error) {
+          console.error("Error submitting feedback:", error);
+          alert("Error submitting feedback. Please try again.");
+        }
+      }
+
+      // Event Listeners
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .getElementById("login-button")
+          .addEventListener("click", () => {
+            const studentId = document.getElementById("student-id").value;
+            const password = document.getElementById("password").value;
+
+            if (!studentId || !password) {
+              alert("Please enter both student ID and password");
+              return;
+            }
+
+            fetchAndSortQueries(studentId, password);
+          });
       });
     </script>
   </body>
