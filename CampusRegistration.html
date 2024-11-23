@@ -236,22 +236,60 @@
           const qualificationsRef = collection(db, "qualifications");
           const querySnapshot = await getDocs(qualificationsRef);
 
-          // Clear existing options except the first one
+          // Clear existing options
           qualificationSelect.innerHTML =
             '<option value="">Select Qualification</option>';
 
+          if (querySnapshot.empty) {
+            console.log("No qualifications found");
+            return;
+          }
+
           querySnapshot.forEach((doc) => {
-            const qualification = doc.data();
+            // The ID is already the full qualification name in your case
+            const qualificationId = doc.id;
             const option = document.createElement("option");
-            option.value = doc.id;
-            option.textContent = qualification.name;
+            option.value = qualificationId;
+            option.textContent = qualificationId; // Use the ID as the display text since it contains the full name
             qualificationSelect.appendChild(option);
           });
+
+          console.log(`Loaded ${querySnapshot.size} qualifications`);
         } catch (error) {
           console.error("Error loading qualifications:", error);
           errorMessage.textContent = "Error loading qualifications";
         }
       }
+
+      // Add this helper function to debug the qualifications
+      async function debugQualifications() {
+        try {
+          const qualificationsRef = collection(db, "qualifications");
+          const querySnapshot = await getDocs(qualificationsRef);
+
+          console.group("Qualifications Debug Info");
+          console.log(`Total qualifications: ${querySnapshot.size}`);
+
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            console.log({
+              id: doc.id,
+              code: data.code,
+              name: data.name,
+              fullData: data,
+            });
+          });
+          console.groupEnd();
+        } catch (error) {
+          console.error("Error in debug:", error);
+        }
+      }
+
+      // Call both when page loads
+      document.addEventListener("DOMContentLoaded", async () => {
+        await debugQualifications(); // This will show us what's in the database
+        await loadQualifications();
+      });
 
       // Load qualifications when the page loads
       document.addEventListener("DOMContentLoaded", loadQualifications);
@@ -297,7 +335,7 @@
         }
       });
 
-      // Handle form submission
+      // Update form submission to store both code and name
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -316,7 +354,6 @@
         }
 
         try {
-          // Create a new document in CampusRegistration collection
           await setDoc(doc(db, "CampusRegistration", studentId), {
             studentId,
             name,
@@ -325,7 +362,7 @@
             campus,
             studyType,
             deliveryMode,
-            qualificationId: qualification, // Store the qualification ID
+            qualification, // Store the full qualification name
             timestamp: new Date().toISOString(),
           });
 
