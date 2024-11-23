@@ -3,9 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Add Student Modules</title>
+    <title>Add Modules</title>
     <style>
-      /* Previous styles remain unchanged */
       * {
         margin: 0;
         padding: 0;
@@ -106,15 +105,23 @@
       }
 
       .error-message {
-        color: red;
+        color: #dc3545;
         font-size: 0.8rem;
         margin-top: 0.2rem;
+        padding: 0.5rem;
+        background-color: #fce8e8;
+        border-radius: 4px;
+        display: none;
       }
 
       .success-message {
-        color: green;
+        color: #28a745;
         font-size: 0.8rem;
         margin-top: 0.2rem;
+        padding: 0.5rem;
+        background-color: #e8f5e9;
+        border-radius: 4px;
+        display: none;
       }
 
       .footer {
@@ -130,7 +137,18 @@
       #loadingIndicator {
         text-align: center;
         margin: 1rem 0;
+        padding: 1rem;
+        background-color: #e3f2fd;
+        border-radius: 4px;
         display: none;
+      }
+
+      .secondary-btn {
+        background-color: #6c757d;
+      }
+
+      .secondary-btn:hover {
+        background-color: #5a6268;
       }
     </style>
   </head>
@@ -143,6 +161,7 @@
     <div class="container">
       <h1>Add Modules</h1>
       <div id="loadingIndicator">Loading student information...</div>
+
       <form id="addModulesForm">
         <div class="form-group">
           <label for="studentId">Student ID</label>
@@ -198,9 +217,8 @@
         <button type="submit" class="submit-btn">Register Modules</button>
         <button
           type="button"
-          class="submit-btn"
+          class="submit-btn secondary-btn"
           onclick="window.location.href='StudentModulesDashboard.html'"
-          style="margin-top: 0.5rem; background-color: #666"
         >
           Back to Modules Dashboard
         </button>
@@ -232,256 +250,203 @@
       const firebaseConfig = {
         apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
         authDomain: "kampus-konnect-38932.firebaseapp.com",
-        databaseURL: "https://kampus-konnect-38932-default-rtdb.firebaseio.com",
         projectId: "kampus-konnect-38932",
         storageBucket: "kampus-konnect-38932.appspot.com",
         messagingSenderId: "163800800971",
         appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
-        measurementId: "G-4DV0GBX6YM",
       };
 
       // Initialize Firebase
-      try {
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
 
-        let currentStudentId = null;
-        let currentQualificationId = null;
-        let studentData = null;
+      // Global variables
+      let currentStudentId = null;
+      let studentData = null;
 
-        // Show loading indicator
-        const loadingIndicator = document.getElementById("loadingIndicator");
-        loadingIndicator.style.display = "block";
+      // Show/hide message functions
+      function showError(message) {
+        const errorElement = document.getElementById("errorMessage");
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+        setTimeout(() => (errorElement.style.display = "none"), 5000);
+      }
 
-        // Check authentication and load student info
-        onAuthStateChanged(auth, async (user) => {
+      function showSuccess(message) {
+        const successElement = document.getElementById("successMessage");
+        successElement.textContent = message;
+        successElement.style.display = "block";
+        setTimeout(() => (successElement.style.display = "none"), 5000);
+      }
+
+      // Load student data
+      async function loadStudentData(user) {
+        const studentsRef = collection(db, "students");
+        const q = query(studentsRef, where("email", "==", user.email));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          throw new Error("Student record not found");
+        }
+
+        const studentDoc = querySnapshot.docs[0];
+        studentData = studentDoc.data();
+        currentStudentId = studentData.studentId;
+
+        // Load campus registration
+        const regDoc = await getDoc(
+          doc(db, "CampusRegistration", currentStudentId)
+        );
+        if (!regDoc.exists()) {
+          throw new Error("Please complete campus registration first");
+        }
+
+        const registrationData = regDoc.data();
+
+        // Populate form fields
+        document.getElementById("studentId").value = currentStudentId;
+        document.getElementById("firstName").value = studentData.firstName;
+        document.getElementById("lastName").value = studentData.lastName;
+        document.getElementById("qualification").value =
+          registrationData.qualification;
+
+        // Update navbar
+        document.getElementById(
+          "studentInfo"
+        ).textContent = `${studentData.firstName} ${studentData.lastName} (${currentStudentId})`;
+
+        return registrationData.qualification;
+      }
+
+      // Load modules
+      async function loadModules(qualificationName) {
+        const moduleList = document.getElementById("moduleList");
+        moduleList.innerHTML = "<p>Loading modules...</p>";
+
+        try {
+          const qualificationRef = doc(db, "qualifications", qualificationName);
+          const qualificationDoc = await getDoc(qualificationRef);
+
+          if (!qualificationDoc.exists()) {
+            throw new Error("Qualification not found");
+          }
+
+          const qualificationData = qualificationDoc.data();
+          moduleList.innerHTML = "";
+
+          Object.entries(qualificationData)
+            .filter(([key]) => key.match(/^[A-Z]+\d{4}$/))
+            .forEach(([moduleCode, moduleName]) => {
+              const div = document.createElement("div");
+              div.className = "module-item";
+              div.innerHTML = `
+                            <input type="checkbox" class="module-checkbox" id="${moduleCode}" value="${moduleCode}">
+                            <label for="${moduleCode}">${moduleCode} - ${moduleName}</label>
+                        `;
+              moduleList.appendChild(div);
+            });
+        } catch (error) {
+          console.error("Error loading modules:", error);
+          moduleList.innerHTML =
+            "<p>Error loading modules. Please try again.</p>";
+          showError(error.message);
+        }
+      }
+
+      // Handle form submission
+      document
+        .getElementById("addModulesForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const submitButton = e.target.querySelector('button[type="submit"]');
+          submitButton.disabled = true;
+
           try {
-            if (!user) {
-              console.log("No user logged in, redirecting to login page");
-              window.location.href = "login.html";
-              return;
+            const semester = document.getElementById("semester").value;
+            const year = document.getElementById("year").value;
+            const selectedModules = Array.from(
+              document.querySelectorAll(".module-checkbox:checked")
+            ).map((cb) => ({
+              moduleCode: cb.value,
+              moduleName: cb.nextElementSibling.textContent.split(" - ")[1],
+            }));
+
+            if (selectedModules.length === 0) {
+              throw new Error("Please select at least one module");
             }
 
-            console.log("User logged in:", user.email);
-
-            // Get student data
-            const studentsRef = collection(db, "students");
-            const q = query(studentsRef, where("email", "==", user.email));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-              throw new Error("No student record found for this email address");
-            }
-
-            studentData = querySnapshot.docs[0].data();
-            currentStudentId = studentData.studentId;
-
-            // Populate student information fields
-            document.getElementById("studentId").value = currentStudentId;
-            document.getElementById("firstName").value = studentData.firstName;
-            document.getElementById("lastName").value = studentData.lastName;
-
-            console.log("Student info loaded:", currentStudentId);
-
-            // Get student's qualification from CampusRegistration
-            const campusRegRef = doc(
+            // Check for existing registration
+            const studentModulesRef = doc(
               db,
-              "CampusRegistration",
+              "StudentModules",
               currentStudentId
             );
-            const campusRegDoc = await getDoc(campusRegRef);
+            const existingDoc = await getDoc(studentModulesRef);
+            const existingRegistrations = existingDoc.exists()
+              ? existingDoc.data().registrations || []
+              : [];
 
-            if (!campusRegDoc.exists()) {
-              throw new Error("No campus registration found for this student");
+            if (
+              existingRegistrations.some(
+                (reg) => reg.semester === semester && reg.year === year
+              )
+            ) {
+              throw new Error(
+                `Already registered for Semester ${semester}, ${year}`
+              );
             }
 
-            const regData = campusRegDoc.data();
-            currentQualificationId = regData.qualificationId;
-            console.log("Qualification ID loaded:", currentQualificationId);
+            // Save registration
+            await setDoc(studentModulesRef, {
+              studentId: currentStudentId,
+              firstName: studentData.firstName,
+              lastName: studentData.lastName,
+              qualification: document.getElementById("qualification").value,
+              registrations: [
+                ...existingRegistrations,
+                {
+                  semester,
+                  year,
+                  modules: selectedModules,
+                  timestamp: new Date().toISOString(),
+                },
+              ],
+            });
 
-            // Get qualification details
-            const qualificationRef = doc(
-              db,
-              "qualifications",
-              currentQualificationId
+            showSuccess("Modules registered successfully!");
+            setTimeout(
+              () => (window.location.href = "StudentModulesDashboard.html"),
+              2000
             );
-            const qualificationDoc = await getDoc(qualificationRef);
-
-            if (!qualificationDoc.exists()) {
-              throw new Error("Qualification not found");
-            }
-
-            const qualificationData = qualificationDoc.data();
-            document.getElementById("qualification").value =
-              qualificationData.name;
-            console.log("Qualification loaded:", qualificationData.name);
-
-            // Load modules for this qualification
-            await loadQualificationModules(qualificationData);
           } catch (error) {
-            console.error("Error in authentication process:", error);
-            document.getElementById(
-              "errorMessage"
-            ).textContent = `Error: ${error.message}`;
+            console.error("Registration error:", error);
+            showError(error.message);
           } finally {
-            loadingIndicator.style.display = "none";
+            submitButton.disabled = false;
           }
         });
 
-        async function loadQualificationModules(qualificationData) {
-          try {
-            const moduleList = document.getElementById("moduleList");
-            moduleList.innerHTML = "<p>Loading modules...</p>";
+      // Initialize page
+      onAuthStateChanged(auth, async (user) => {
+        const loadingIndicator = document.getElementById("loadingIndicator");
+        loadingIndicator.style.display = "block";
 
-            const qualificationRef = doc(
-              db,
-              "qualifications",
-              currentQualificationId
-            );
-            const qualificationDoc = await getDoc(qualificationRef);
-
-            if (!qualificationDoc.exists()) {
-              throw new Error("Qualification not found");
-            }
-
-            const qualificationFields = qualificationDoc.data();
-            const moduleFields = Object.entries(qualificationFields).filter(
-              ([key]) => key.match(/[A-Z]+\d{4}/)
-            );
-
-            if (moduleFields.length === 0) {
-              moduleList.innerHTML =
-                "<p>No modules available for this qualification.</p>";
-              return;
-            }
-
-            moduleList.innerHTML = ""; // Clear loading message
-
-            for (const [moduleCode, moduleName] of moduleFields) {
-              const moduleItem = document.createElement("div");
-              moduleItem.classList.add("module-item");
-              moduleItem.innerHTML = `
-                <input type="checkbox" class="module-checkbox" id="${moduleCode}" value="${moduleCode}">
-                <label for="${moduleCode}">${moduleCode} - ${moduleName}</label>
-              `;
-              moduleList.appendChild(moduleItem);
-            }
-          } catch (error) {
-            console.error("Error loading modules:", error);
-            document.getElementById(
-              "errorMessage"
-            ).textContent = `Error loading modules: ${error.message}`;
-            moduleList.innerHTML =
-              "<p>Error loading modules. Please try refreshing the page.</p>";
+        try {
+          if (!user) {
+            window.location.href = "login.html";
+            return;
           }
+
+          const qualificationName = await loadStudentData(user);
+          await loadModules(qualificationName);
+        } catch (error) {
+          console.error("Initialization error:", error);
+          showError(error.message);
+        } finally {
+          loadingIndicator.style.display = "none";
         }
-
-        // Modified module registration handler with new data structure
-        document
-          .getElementById("addModulesForm")
-          .addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = "Registering...";
-
-            try {
-              const selectedModules = Array.from(
-                document.querySelectorAll(".module-checkbox:checked")
-              ).map((cb) => cb.value);
-
-              const semester = document.getElementById("semester").value;
-              const year = document.getElementById("year").value;
-
-              if (!semester || !year) {
-                throw new Error("Please select both semester and year.");
-              }
-
-              if (selectedModules.length === 0) {
-                throw new Error("Please select at least one module.");
-              }
-
-              // Get the qualification document to access module names
-              const qualificationRef = doc(
-                db,
-                "qualifications",
-                currentQualificationId
-              );
-              const qualificationDoc = await getDoc(qualificationRef);
-              const qualificationData = qualificationDoc.data();
-
-              // Create array of selected modules with their names
-              const moduleArray = selectedModules.map((moduleCode) => ({
-                moduleCode: moduleCode,
-                moduleName: qualificationData[moduleCode],
-              }));
-
-              // Create the student modules document
-              const studentModulesRef = doc(
-                db,
-                "StudentModules",
-                currentStudentId
-              );
-
-              // Get existing registrations if any
-              const existingDoc = await getDoc(studentModulesRef);
-              const existingRegistrations = existingDoc.exists()
-                ? existingDoc.data().registrations || []
-                : [];
-
-              // Check for duplicate registrations
-              const newRegistration = {
-                semester: semester,
-                year: year,
-                modules: moduleArray,
-                timestamp: new Date().toISOString(),
-              };
-
-              // Check if this semester and year combination already exists
-              const duplicateRegistration = existingRegistrations.some(
-                (reg) => reg.semester === semester && reg.year === year
-              );
-
-              if (duplicateRegistration) {
-                throw new Error(
-                  `You already have registrations for Semester ${semester}, ${year}`
-                );
-              }
-
-              // Store all student information and modules
-              await setDoc(studentModulesRef, {
-                studentId: currentStudentId,
-                firstName: studentData.firstName,
-                lastName: studentData.lastName,
-                qualification: document.getElementById("qualification").value,
-                registrations: [...existingRegistrations, newRegistration],
-              });
-
-              document.getElementById("successMessage").textContent =
-                "Modules registered successfully!";
-              document.getElementById("errorMessage").textContent = "";
-
-              // Redirect after successful registration
-              setTimeout(() => {
-                window.location.href = "StudentModulesDashboard.html";
-              }, 2000);
-            } catch (error) {
-              console.error("Registration error:", error);
-              document.getElementById(
-                "errorMessage"
-              ).textContent = `Registration failed: ${error.message}`;
-            } finally {
-              submitBtn.disabled = false;
-              submitBtn.textContent = "Register Modules";
-            }
-          });
-      } catch (error) {
-        console.error("Firebase initialization error:", error);
-        document.getElementById("errorMessage").textContent =
-          "Error initializing application. Please try refreshing the page.";
-      }
+      });
     </script>
   </body>
 </html>
