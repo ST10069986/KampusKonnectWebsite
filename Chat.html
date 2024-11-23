@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        height: 100vh;
+        display: flex;
+      }
+
+      .sidebar {
+        width: 250px;
+        background-color: #85f442;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-header {
+        padding: 1rem 0;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 1rem;
+        color: white;
+      }
+
+      /* Chat List Styles */
+      .chat-container {
+        display: flex;
+        flex-grow: 1;
+        background: #f5f5f5;
+      }
+
+      .chat-list {
+        width: 300px;
+        background: white;
+        border-right: 1px solid #ddd;
+        overflow-y: auto;
+      }
+
+      .chat-list-item {
+        padding: 15px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .chat-list-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+      }
+
+      .chat-list-item.active {
+        background-color: #e3f2fd;
+        border-left: 4px solid #4285f4;
+      }
+
+      /* Chat Window Styles */
+      .chat-window {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background: white;
+      }
+
+      .chat-header {
+        padding: 15px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .chat-messages {
+        flex-grow: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8f9fa;
+      }
+
+      .message {
+        max-width: 70%;
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        border-radius: 15px;
+        position: relative;
+        word-wrap: break-word;
+      }
+
+      .message-sent {
+        background: #dcf8c6;
+        margin-left: auto;
+        border-bottom-right-radius: 5px;
+      }
+
+      .message-received {
+        background: white;
+        margin-right: auto;
+        border-bottom-left-radius: 5px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .message-time {
+        font-size: 0.75rem;
+        color: #999;
+        margin-top: 5px;
+      }
+
+      .chat-input {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #ddd;
+        display: flex;
+        gap: 10px;
+      }
+
+      .chat-input input {
+        flex-grow: 1;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 24px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .chat-input input:focus {
+        border-color: #4285f4;
+      }
+
+      .chat-input button {
+        padding: 10px 20px;
+        background: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 24px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .chat-input button:hover {
+        background: #3367d6;
+        transform: translateY(-1px);
+      }
+
+      .no-chat-selected {
+        display: flex;
+        flex-grow: 1;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 1rem;
+        color: #666;
+        background: #f9f9f9;
+      }
+
+      .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white;
+        text-decoration: none;
+        padding: 0.5rem;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+      }
+
+      .back-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>Kampus Konnect</h2>
+      </div>
+      <a href="StudentDashboard.html" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Dashboard
+      </a>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+      <div class="chat-list" id="chatList">
+        <!-- Chat list will be populated dynamically -->
+      </div>
+
+      <div class="chat-window" id="chatWindow">
+        <div class="no-chat-selected">
+          <i class="fas fa-comments fa-3x" style="color: #ddd"></i>
+          <p>Select a chat to start messaging</p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        orderBy,
+        onSnapshot,
+        addDoc,
+        getDocs,
+        serverTimestamp,
+        doc,
+        getDoc,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      let currentChatId = null;
+      let currentStudent = null;
+
+      // Initialize when page loads
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          // Get student data from session storage
+          const studentData = sessionStorage.getItem("currentStudent");
+          if (!studentData) {
+            throw new Error("No student data found");
+          }
+
+          currentStudent = JSON.parse(studentData);
+
+          // Get URL parameters
+          const urlParams = new URLSearchParams(window.location.search);
+          const queryId = urlParams.get("queryId");
+          const adminEmail = urlParams.get("adminEmail");
+
+          if (queryId && adminEmail) {
+            await initializeChat(queryId, adminEmail);
+          }
+
+          // Load chat list
+          loadChatList();
+        } catch (error) {
+          console.error("Initialization error:", error);
+          window.location.href = "PreviousStudentQueries.html";
+        }
+      });
+
+      async function initializeChat(queryId, adminEmail) {
+        try {
+          // Check if chat exists
+          const chatQuery = query(
+            collection(db, "chats"),
+            where("queryId", "==", queryId),
+            where("studentId", "==", currentStudent.studentId),
+            where("adminEmail", "==", adminEmail)
+          );
+
+          const chatSnapshot = await getDocs(chatQuery);
+
+          if (chatSnapshot.empty) {
+            // Create new chat
+            const chatRef = await addDoc(collection(db, "chats"), {
+              queryId,
+              studentId: currentStudent.studentId,
+              studentName: currentStudent.name || currentStudent.studentId,
+              adminEmail,
+              createdAt: serverTimestamp(),
+              lastMessageTime: serverTimestamp(),
+            });
+            currentChatId = chatRef.id;
+          } else {
+            currentChatId = chatSnapshot.docs[0].id;
+          }
+
+          loadChat(currentChatId);
+        } catch (error) {
+          console.error("Error initializing chat:", error);
+          alert("Error starting chat. Please try again.");
+        }
+      }
+
+      async function loadChatList() {
+        const chatListElement = document.getElementById("chatList");
+
+        // Query for student's chats
+        const chatsQuery = query(
+          collection(db, "chats"),
+          where("studentId", "==", currentStudent.studentId),
+          orderBy("lastMessageTime", "desc")
+        );
+
+        onSnapshot(chatsQuery, (snapshot) => {
+          chatListElement.innerHTML = "";
+          snapshot.forEach((doc) => {
+            const chat = doc.data();
+            const div = document.createElement("div");
+            div.className = "chat-list-item";
+            if (doc.id === currentChatId) {
+              div.classList.add("active");
+            }
+            div.onclick = () => loadChat(doc.id);
+            div.innerHTML = `
+                        <div style="font-weight: bold">Chat with ${
+                          chat.adminEmail
+                        }</div>
+                        <div style="font-size: 0.8em; color: #666;">
+                            ${
+                              chat.lastMessageTime
+                                ? new Date(
+                                    chat.lastMessageTime.toDate()
+                                  ).toLocaleString()
+                                : "New Chat"
+                            }
+                        </div>
+                    `;
+            chatListElement.appendChild(div);
+          });
+        });
+      }
+
+      async function loadChat(chatId) {
+        currentChatId = chatId;
+        const chatWindow = document.getElementById("chatWindow");
+
+        // Get chat data
+        const chatDoc = await getDoc(doc(db, "chats", chatId));
+        const chatData = chatDoc.data();
+
+        chatWindow.innerHTML = `
+                <div class="chat-header">
+                    <h3>Chat with ${chatData.adminEmail}</h3>
+                </div>
+                <div class="chat-messages" id="messagesList"></div>
+                <div class="chat-input">
+                    <input type="text" id="messageInput" placeholder="Type a message...">
+                    <button onclick="window.sendMessage()">Send</button>
+                </div>
+            `;
+
+        // Load and listen to messages
+        const messagesQuery = query(
+          collection(db, "chats", chatId, "messages"),
+          orderBy("timestamp")
+        );
+
+        onSnapshot(messagesQuery, (snapshot) => {
+          const messagesList = document.getElementById("messagesList");
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const message = change.doc.data();
+              const div = document.createElement("div");
+              const isCurrentUser =
+                message.senderId === currentStudent.studentId;
+              div.className = `message ${
+                isCurrentUser ? "message-sent" : "message-received"
+              }`;
+              div.innerHTML = `
+                            <div>${message.text}</div>
+                            <div class="message-time">
+                                ${new Date(
+                                  message.timestamp?.toDate()
+                                ).toLocaleString()}
+                            </div>
+                        `;
+              messagesList.appendChild(div);
+              messagesList.scrollTop = messagesList.scrollHeight;
+            }
+          });
+        });
+      }
+
+      // Make sendMessage available globally
+      window.sendMessage = async () => {
+        const input = document.getElementById("messageInput");
+        const text = input.value.trim();
+
+        if (!text || !currentChatId) return;
+
+        try {
+          await addDoc(collection(db, "chats", currentChatId, "messages"), {
+            text,
+            senderId: currentStudent.studentId,
+            senderName: currentStudent.name || currentStudent.studentId,
+            timestamp: serverTimestamp(),
+          });
+
+          // Update last message in chat document
+          await updateDoc(doc(db, "chats", currentChatId), {
+            lastMessageTime: serverTimestamp(),
+            lastMessage: text,
+          });
+
+          input.value = "";
+        } catch (error) {
+          console.error("Error sending message:", error);
+          alert("Error sending message. Please try again.");
+        }
+      };
+
+      // Handle Enter key in input
+      document.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && e.target.id === "messageInput") {
+          window.sendMessage();
+        }
+      });
+    </script>
+  </body>
+</html>
