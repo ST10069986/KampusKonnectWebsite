@@ -153,20 +153,65 @@
         transform: translateY(-2px);
       }
 
-      .query-card {
-        position: relative;
-        transition: all 0.3s ease;
-      }
-
-      .query-card:hover {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
       .back-button {
         display: inline-block;
         margin-top: 20px;
         color: #4285f4;
         text-decoration: none;
         font-weight: bold;
+      }
+
+      .category-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .tag-campus {
+        background-color: #e6f3ff;
+        color: #4299e1;
+        border: 1px solid #4299e1;
+      }
+
+      .tag-alumni {
+        background-color: #f3e8ff;
+        color: #9333ea;
+        border: 1px solid #9333ea;
+      }
+
+      .tag-student-hub {
+        background-color: #fce7f3;
+        color: #f472b6;
+        border: 1px solid #f472b6;
+      }
+
+      /* Update existing query card styles */
+      .query-card {
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .query-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .query-card.campus-queries {
+        border-left: 4px solid #4299e1;
+      }
+
+      .query-card.alumni-student-queries {
+        border-left: 4px solid #9333ea;
+      }
+
+      .query-card.student-hub-queries {
+        border-left: 4px solid #f472b6;
       }
     </style>
   </head>
@@ -368,15 +413,33 @@
           .join("");
       }
 
+      function getCategoryTag(category) {
+        let tagClass = "";
+        switch (category.toLowerCase()) {
+          case "campus queries":
+            tagClass = "tag-campus";
+            break;
+          case "alumni student queries":
+            tagClass = "tag-alumni";
+            break;
+          case "student hub queries":
+            tagClass = "tag-student-hub";
+            break;
+          default:
+            tagClass = "tag-default";
+        }
+        return `<span class="category-tag ${tagClass}">${category}</span>`;
+      }
+
       function createQueryCard(query) {
         const categoryClass = query.queryCategory
           .toLowerCase()
           .replace(/\s+/g, "-");
         return `
-          <div class="query-card ${categoryClass}">
+        <div class="query-card ${categoryClass}">
+            ${getCategoryTag(query.queryCategory)}
             <h3>${query.queryName || query.queryType}</h3>
             <p><strong>Type:</strong> ${query.queryType}</p>
-            <p><strong>Category:</strong> ${query.queryCategory}</p>
             <p><strong>Date:</strong> ${query.dateSubmitted
               .toDate()
               .toLocaleString()}</p>
@@ -391,8 +454,8 @@
             <div class="status ${query.status.toLowerCase()}">${
           query.status
         }</div>
-          </div>
-        `;
+        </div>
+    `;
       }
 
       function createSolvedQueryCard(query) {
@@ -405,54 +468,53 @@
         );
 
         return `
-    <div class="query-card ${categoryClass}">
-      <div>
-        <h3>${query.queryName || query.queryType}</h3>
-        <p><strong>Type:</strong> ${query.queryType}</p>
-        <p><strong>Category:</strong> ${query.queryCategory}</p>
-        <p><strong>Date:</strong> ${query.dateSubmitted
-          .toDate()
-          .toLocaleString()}</p>
-        <p><strong>Description:</strong> ${query.description}</p>
-        <p><strong>Admin Feedback:</strong> ${
-          query.adminFeedback || "No feedback provided"
-        }</p>
-        <p><strong>Solved by:</strong> ${
-          query.adminEmail || "Unknown Admin"
-        }</p>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-          <div class="status solved">Solved</div>
-          <a href="Chat.html?queryId=${
-            query.id
-          }&adminEmail=${encodeURIComponent(
+        <div class="query-card ${categoryClass}">
+            <div>
+                ${getCategoryTag(query.queryCategory)}
+                <h3>${query.queryName || query.queryType}</h3>
+                <p><strong>Type:</strong> ${query.queryType}</p>
+                <p><strong>Date:</strong> ${query.dateSubmitted
+                  .toDate()
+                  .toLocaleString()}</p>
+                <p><strong>Description:</strong> ${query.description}</p>
+                <p><strong>Admin Feedback:</strong> ${
+                  query.adminFeedback || "No feedback provided"
+                }</p>
+                <p><strong>Solved by:</strong> ${
+                  query.adminEmail || "Unknown Admin"
+                }</p>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <div class="status solved">Solved</div>
+                    <a href="Chat.html?queryId=${
+                      query.id
+                    }&adminEmail=${encodeURIComponent(
           query.adminEmail
         )}&isAdmin=false&studentId=${currentStudent.studentId}" 
-             class="chat-btn feedback-btn" style="text-decoration: none;">
-            💬 Chat with Admin
-          </a>
-        </div>
+                        class="chat-btn feedback-btn" style="text-decoration: none;">
+                        💬 Chat with Admin
+                    </a>
+                </div>
 
-        <div class="feedback-section">
-          <h4>Rate Admin's Response</h4>
-          <div class="star-rating" id="star-rating-${query.id}">
-            ${createStarRating(query.id)}
-          </div>
-          <textarea
-            id="feedback-${query.id}"
-            class="feedback-input"
-            placeholder="Share your thoughts about the admin's response..."
-          ></textarea>
-          <button
-            onclick="submitFeedback('${query.id}')"
-            class="feedback-btn"
-          >
-            Submit Feedback
-          </button>
+                <div class="feedback-section">
+                    <h4>Rate Admin's Response</h4>
+                    <div class="star-rating" id="star-rating-${query.id}">
+                        ${createStarRating(query.id)}
+                    </div>
+                    <textarea
+                        id="feedback-${query.id}"
+                        class="feedback-input"
+                        placeholder="Share your thoughts about the admin's response..."
+                    ></textarea>
+                    <button onclick="submitFeedback('${
+                      query.id
+                    }')" class="feedback-btn">
+                        Submit Feedback
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  `;
+    `;
       }
 
       function createStarRating(queryId) {
