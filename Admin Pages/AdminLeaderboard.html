@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Leaderboard</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f2f5;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #f0f2f5;
+      }
+
+      .title {
+        font-size: 28px;
+        font-weight: bold;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+      }
+
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .admin-card {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        margin: 12px 0;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+      }
+
+      .admin-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .rank-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 16px;
+        font-size: 24px;
+      }
+
+      .admin-info {
+        flex-grow: 1;
+      }
+
+      .admin-email {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 4px;
+      }
+
+      .admin-stats {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        color: #6b7280;
+      }
+
+      .stat-divider {
+        margin: 0 8px;
+        color: #d1d5db;
+      }
+
+      .level-badge {
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .rank-1 {
+        background: linear-gradient(135deg, #fef9c3, #fef3c7);
+      }
+      .rank-2 {
+        background: linear-gradient(135deg, #f1f5f9, #f8fafc);
+      }
+      .rank-3 {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+      }
+
+      .crown-icon {
+        color: #eab308;
+      }
+      .silver-medal {
+        color: #94a3b8;
+      }
+      .bronze-medal {
+        color: #92400e;
+      }
+      .star-icon {
+        color: #60a5fa;
+      }
+
+      .back-button {
+        display: inline-block;
+        margin-top: 20px;
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .back-button:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 class="title">Admin Leaderboard</h1>
+        <span style="font-size: 28px; color: #eab308">👑</span>
+      </div>
+      <div id="leaderboard">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+      <a href="StudentDashboard.html" class="back-button"
+        >← Back to Dashboard</a
+      >
+    </div>
+
+    <script>
+      // Initialize Firebase with your config
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVGOh9N2kRbU8G6QRVtQsEr-6ANA4Gqjo",
+        authDomain: "kampus-konnect-38932.firebaseapp.com",
+        projectId: "kampus-konnect-38932",
+        storageBucket: "kampus-konnect-38932.appspot.com",
+        messagingSenderId: "163800800971",
+        appId: "1:163800800971:web:1a87e4ae7e9d8d30b8454e",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // Calculate level based on XP
+      function calculateLevel(xp) {
+        return Math.floor(xp / 100) + 1;
+      }
+
+      // Get rank icon HTML
+      function getRankIcon(position) {
+        switch (position) {
+          case 1:
+            return "👑";
+          case 2:
+            return "🥈";
+          case 3:
+            return "🥉";
+          default:
+            return "⭐";
+        }
+      }
+
+      // Create admin card HTML
+      function createAdminCard(admin, index) {
+        const rankClass = index < 3 ? `rank-${index + 1}` : "";
+        const levelColor = `hsl(${200 + admin.level * 20}, 80%, 90%)`;
+        const levelTextColor = `hsl(${200 + admin.level * 20}, 80%, 30%)`;
+
+        return `
+                <div class="admin-card ${rankClass}">
+                    <div class="rank-icon">
+                        ${getRankIcon(index + 1)}
+                    </div>
+                    <div class="admin-info">
+                        <div class="admin-email">${admin.email}</div>
+                        <div class="admin-stats">
+                            <span>Level ${admin.level}</span>
+                            <span class="stat-divider">•</span>
+                            <span>${admin.xp}/${admin.level * 100} XP</span>
+                            <span class="stat-divider">•</span>
+                            <span>${admin.solvedQueries} Queries Solved</span>
+                        </div>
+                    </div>
+                    <div class="level-badge" style="background: ${levelColor}; color: ${levelTextColor}">
+                        Level ${admin.level}
+                    </div>
+                </div>
+            `;
+      }
+
+      // Fetch and display leaderboard data
+      async function fetchLeaderboardData() {
+        try {
+          const querySnapshot = await db.collection("SolvedQueries").get();
+          const adminStats = {};
+
+          // Process admin statistics
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const adminEmail = data.adminEmail;
+
+            if (!adminStats[adminEmail]) {
+              adminStats[adminEmail] = {
+                email: adminEmail,
+                solvedQueries: 0,
+              };
+            }
+            adminStats[adminEmail].solvedQueries++;
+          });
+
+          // Calculate XP and levels
+          const processedAdmins = Object.values(adminStats).map((admin) => ({
+            ...admin,
+            xp: admin.solvedQueries * 25,
+            level: calculateLevel(admin.solvedQueries * 25),
+          }));
+
+          // Sort by XP
+          const sortedAdmins = processedAdmins.sort((a, b) => b.xp - a.xp);
+
+          // Update DOM
+          if (sortedAdmins.length === 0) {
+            document.getElementById("leaderboard").innerHTML = `
+                        <div style="text-align: center; color: #6b7280; padding: 20px;">
+                            No admin statistics available yet.
+                        </div>
+                    `;
+          } else {
+            document.getElementById("leaderboard").innerHTML = sortedAdmins
+              .map((admin, index) => createAdminCard(admin, index))
+              .join("");
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          document.getElementById("leaderboard").innerHTML = `
+                    <div style="text-align: center; color: #ef4444; padding: 20px;">
+                        Error loading leaderboard. Please try again later.
+                    </div>
+                `;
+        }
+      }
+
+      // Initialize leaderboard when page loads
+      document.addEventListener("DOMContentLoaded", fetchLeaderboardData);
+    </script>
+  </body>
+</html>
