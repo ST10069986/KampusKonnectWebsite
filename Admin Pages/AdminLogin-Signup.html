@@ -13,7 +13,27 @@
       }
 
       body {
-        background-color: #f0f2f5;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: #333;
+        background-color: #f8f9fa;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(133, 244, 66, 0.7) 0%,
+          rgba(244, 177, 66, 0.7) 100%
+        );
+        z-index: -1;
       }
 
       .navbar {
