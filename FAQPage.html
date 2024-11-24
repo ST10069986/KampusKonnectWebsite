@@ -3,23 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FAQ & Tutorials</title>
+    <title>FAQ & Tutorials - Kampus Konnect</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
-        font-family: Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
         display: flex;
         min-height: 100vh;
+        line-height: 1.5;
       }
 
       .sidebar {
         width: 250px;
         background-color: #b142f4;
-        padding: 1rem;
+        padding: 1.5rem;
         display: flex;
         flex-direction: column;
         color: white;
@@ -28,7 +36,7 @@
       .sidebar-header {
         padding: 1rem 0;
         text-align: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         margin-bottom: 1rem;
       }
 
@@ -38,13 +46,21 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 8px;
-        border-radius: 4px;
+        padding: 12px;
+        border-radius: 8px;
         margin-top: auto;
+        transition: background-color 0.2s;
       }
 
-      .back-button:hover {
-        background: rgba(255, 255, 255, 0.1);
+      .back-button:hover,
+      .back-button:focus {
+        background: rgba(255, 255, 255, 0.2);
+        outline: none;
+      }
+
+      .back-button:focus-visible {
+        outline: 2px solid white;
+        outline-offset: -2px;
       }
 
       .main-content {
@@ -57,32 +73,36 @@
       .page-title {
         color: #333;
         margin-bottom: 2rem;
+        font-size: 2rem;
       }
 
       .video-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 2rem;
-        margin-bottom: 2rem;
+        margin-bottom: 3rem;
       }
 
       .video-card {
         background: white;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
       }
 
-      .video-card:hover {
-        transform: translateY(-5px);
+      .video-card:hover,
+      .video-card:focus-within {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
 
       .video-container {
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        padding-bottom: 56.25%;
         height: 0;
         overflow: hidden;
+        background: #f0f0f0;
       }
 
       .video-container iframe {
@@ -100,15 +120,15 @@
 
       .video-title {
         font-size: 1.2rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-        color: #333;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #1a1a1a;
       }
 
       .video-description {
         color: #666;
-        font-size: 0.9rem;
-        line-height: 1.5;
+        font-size: 0.95rem;
+        line-height: 1.6;
       }
 
       .faq-section {
@@ -116,38 +136,63 @@
         border-radius: 12px;
         padding: 2rem;
         margin-top: 2rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
 
       .faq-title {
-        color: #333;
-        margin-bottom: 1.5rem;
+        color: #1a1a1a;
+        margin-bottom: 2rem;
+        font-size: 1.5rem;
       }
 
       .faq-item {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
       }
 
       .faq-question {
-        font-weight: bold;
+        font-weight: 600;
         color: #b142f4;
-        margin-bottom: 0.5rem;
+        padding: 1rem;
         cursor: pointer;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-radius: 8px;
+        transition: background-color 0.2s;
+        user-select: none;
+      }
+
+      .faq-question:hover {
+        background-color: rgba(177, 66, 244, 0.1);
+      }
+
+      .faq-question:focus {
+        outline: none;
+        background-color: rgba(177, 66, 244, 0.1);
+        box-shadow: 0 0 0 2px #b142f4;
+      }
+
+      .faq-question i {
+        transition: transform 0.3s ease;
       }
 
       .faq-answer {
-        color: #666;
-        padding-left: 1rem;
+        color: #444;
+        padding: 0 1rem 1rem 2rem;
         border-left: 3px solid #b142f4;
-        margin-left: 0.5rem;
-        display: none;
+        margin-left: 1rem;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        opacity: 0;
       }
 
       .faq-answer.active {
-        display: block;
+        max-height: 500px;
+        opacity: 1;
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
       }
     </style>
   </head>
@@ -157,12 +202,12 @@
         <h2>Kampus Konnect</h2>
       </div>
       <a href="index.html" class="back-button">
-        <i class="fas fa-arrow-left"></i>
-        Back to Homepage
+        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+        <span>Back to Homepage</span>
       </a>
     </div>
 
-    <div class="main-content">
+    <main class="main-content">
       <h1 class="page-title">FAQ & Video Tutorials</h1>
 
       <div class="video-grid">
@@ -170,15 +215,15 @@
           <div class="video-container">
             <iframe
               src="https://www.youtube.com/embed/tA8SmwPlbpo"
+              title="How to Login to Kampus Konnect Tutorial"
               allowfullscreen
+              loading="lazy"
             ></iframe>
           </div>
           <div class="video-info">
-            <h3 class="video-title">
-              How to Login to the Kampus Konnect Website
-            </h3>
+            <h3 class="video-title">How to Login to Kampus Konnect</h3>
             <p class="video-description">
-              Learn how to properly Login as a Student to the Kampus Konnect
+              Learn how to properly Login as a student to the Kampus Konnect
               system.
             </p>
           </div>
@@ -188,15 +233,15 @@
           <div class="video-container">
             <iframe
               src="https://www.youtube.com/embed/YXDM6xtjBkU"
+              title="How to Register to the Kampus Konnect Website"
               allowfullscreen
+              loading="lazy"
             ></iframe>
           </div>
           <div class="video-info">
-            <h3 class="video-title">
-              How to Register to the Kampus Konnect Website
-            </h3>
+            <h3 class="video-title">How to Register to Kampus Konnect</h3>
             <p class="video-description">
-              Learn how to properly Register as a Student to the Kampus Konnect
+              Learn how to properly Register as a student to the Kampus Konnect
               system.
             </p>
           </div>
@@ -206,7 +251,9 @@
           <div class="video-container">
             <iframe
               src="https://www.youtube.com/embed/KM20kMQ9j2s"
+              title="How to Register to the Kampus Konnect Website"
               allowfullscreen
+              loading="lazy"
             ></iframe>
           </div>
           <div class="video-info">
@@ -224,13 +271,17 @@
           <div class="video-container">
             <iframe
               src="https://www.youtube.com/embed/60uu71B5LDg"
+              title="How to Register to the Kampus Konnect Website"
               allowfullscreen
+              loading="lazy"
             ></iframe>
           </div>
           <div class="video-info">
-            <h3 class="video-title">How to Add Modules on Kampus Konnect</h3>
+            <h3 class="video-title">
+              How to Add your Modules on the Kampus Konnect Website
+            </h3>
             <p class="video-description">
-              Learn how to properly add your modules to the Kampus Konnect
+              Learn how to properly Add your Modules to the Kampus Konnect
               system.
             </p>
           </div>
@@ -240,31 +291,17 @@
           <div class="video-container">
             <iframe
               src="https://www.youtube.com/embed/WQLKL78FNlI"
+              title="How to Register to the Kampus Konnect Website"
               allowfullscreen
-            ></iframe>
-          </div>
-          <div class="video-info">
-            <h3 class="video-title">How to Drop Modules on Kampus Konnect</h3>
-            <p class="video-description">
-              Learn how to properly drop your modules from the Kampus Konnect
-              system.
-            </p>
-          </div>
-        </div>
-
-        <div class="video-card">
-          <div class="video-container">
-            <iframe
-              src="https://www.youtube.com/embed/PwjR6ZQW2p4"
-              allowfullscreen
+              loading="lazy"
             ></iframe>
           </div>
           <div class="video-info">
             <h3 class="video-title">
-              How to Raise a Query on the Kampus Konnect Website
+              How to Drop your Modules from the Kampus Konnect Website
             </h3>
             <p class="video-description">
-              Learn how to properly Raise a Query using the Kampus Konnect
+              Learn how to properly Drop your Modules from the Kampus Konnect
               system.
             </p>
           </div>
@@ -274,7 +311,9 @@
           <div class="video-container">
             <iframe
               src="https://www.youtube.com/embed/7qTLMTF1F_g"
+              title="How to Register to the Kampus Konnect Website"
               allowfullscreen
+              loading="lazy"
             ></iframe>
           </div>
           <div class="video-info">
@@ -282,75 +321,124 @@
               How to View your Queries on the Kampus Konnect Website
             </h3>
             <p class="video-description">
-              Learn how to View all the Queries you have submitted using the
-              Kampus Konnect system.
+              Learn how to properly View your Queries on the Kampus Konnect
+              system.
             </p>
           </div>
-        </div>
+          </div>
 
-        <div class="video-card">
-          <div class="video-container">
-            <iframe
-              src="https://www.youtube.com/embed/bMtzXmop7LQ"
-              allowfullscreen
-            ></iframe>
+          <div class="video-card">
+            <div class="video-container">
+              <iframe
+                src="https://www.youtube.com/embed/7qTLMTF1F_g"
+                title="How to Register to the Kampus Konnect Website"
+                allowfullscreen
+                loading="lazy"
+              ></iframe>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">
+                How to View your Queries on the Kampus Konnect Website
+              </h3>
+              <p class="video-description">
+                Learn how to properly View your Queries on the Kampus Konnect
+                system.
+              </p>
+            </div>
           </div>
-          <div class="video-info">
-            <h3 class="video-title">
-              How to Review your Queries and Chat with the Admin on the Kampus
-              Konnect Website
-            </h3>
-            <p class="video-description">
-              Learn how to Review all your Solved Queries and Chat with the
-              Admin using the Kampus Konnect system.
-            </p>
+
+          <div class="video-card">
+            <div class="video-container">
+              <iframe
+                src="https://www.youtube.com/embed/bMtzXmop7LQ"
+                title="How to Register to the Kampus Konnect Website"
+                allowfullscreen
+                loading="lazy"
+              ></iframe>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">
+                How to Review your Queries and Chat with the Admin on the Kampus
+                Konnect Website
+              </h3>
+              <p class="video-description">
+                Learn how to Review your Queries and Chat with the Admin on the
+                Kampus Konnect system.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="faq-section">
-        <h2 class="faq-title">Frequently Asked Questions</h2>
+      <section class="faq-section" aria-labelledby="faq-title">
+        <h2 id="faq-title" class="faq-title">Frequently Asked Questions</h2>
 
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleAnswer(this)">
-            How long does it take to get a response?
-            <i class="fas fa-chevron-down"></i>
-          </div>
-          <div class="faq-answer">
-            Typically, you can expect a response within 24-48 hours during
-            business days. Complex queries might take longer to resolve.
+        <div class="faq-list">
+          <div class="faq-item">
+            <button
+              class="faq-question"
+              aria-expanded="false"
+              aria-controls="faq-answer-1"
+            >
+              <span>How long does it take to get a response?</span>
+              <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div id="faq-answer-1" class="faq-answer" role="region" hidden>
+              Typically, you can expect a response within 24-48 hours during
+              business days. Complex queries might take longer to resolve.
+            </div>
           </div>
         </div>
 
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleAnswer(this)">
-            What should I do if my query is urgent?
-            <i class="fas fa-chevron-down"></i>
-          </div>
-          <div class="faq-answer">
-            For urgent queries, please mark them as "Urgent" when submitting.
-            Our team prioritizes urgent requests and aims to respond within a
-            few hours.
+        <div class="faq-list">
+          <div class="faq-item">
+            <button
+              class="faq-question"
+              aria-expanded="false"
+              aria-controls="faq-answer-1"
+            >
+              <span>What should i do if my query is Urgent?</span>
+              <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div id="faq-answer-1" class="faq-answer" role="region" hidden>
+              For urgent queries, please mark them as "Urgent" when submitting.
+              Our team prioritizes urgent requests and aims to respond within a
+              few hours.
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
 
     <script>
-      function toggleAnswer(element) {
-        const answer = element.nextElementSibling;
-        const icon = element.querySelector("i");
+      document.querySelectorAll(".faq-question").forEach((button) => {
+        button.addEventListener("click", () => {
+          const answer = button.nextElementSibling;
+          const icon = button.querySelector("i");
+          const isExpanded = button.getAttribute("aria-expanded") === "true";
 
-        // Toggle the answer
-        answer.classList.toggle("active");
+          // Toggle the answer
+          button.setAttribute("aria-expanded", !isExpanded);
+          answer.classList.toggle("active");
+          answer.hidden = isExpanded;
 
-        // Rotate the icon
-        if (answer.classList.contains("active")) {
-          icon.style.transform = "rotate(180deg)";
-        } else {
-          icon.style.transform = "rotate(0deg)";
-        }
-      }
+          // Rotate the icon
+          icon.style.transform = !isExpanded ? "rotate(180deg)" : "rotate(0)";
+        });
+
+        // Add keyboard support
+        button.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            button.click();
+          }
+        });
+      });
+
+      // Add lazy loading to iframes
+      document.querySelectorAll("iframe").forEach((iframe) => {
+        iframe.loading = "lazy";
+      });
     </script>
   </body>
 </html>
