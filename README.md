@@ -64,12 +64,6 @@ No installation required! This is a web-based application accessible through you
 
 ## 📚 Documentation
 
-### Student Guides
-- [How to Login](docs/student/login-guide.md)
-- [How to Submit a Query](docs/student/query-submission.md)
-- [How to Add/Drop Modules](docs/student/module-management.md)
-- [Managing Your Profile](docs/student/profile-management.md)
-
 ### Video Tutorials
 1. **Account Management**
    - How to Login
