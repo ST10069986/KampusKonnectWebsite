@@ -1,6 +1,5 @@
 # Kampus Konnect
-
-![Kampus Konnect Logo](assets/images/logo.png)
+https://st10069986.github.io/KampusKonnectWebsite/
 
 Kampus Konnect is a comprehensive student query management system that streamlines communication between students and administrators in educational institutions. The platform enables students to submit various types of queries, track their status, and receive timely responses from administrators.
 
